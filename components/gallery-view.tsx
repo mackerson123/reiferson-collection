@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { collections, getAllWorks } from "../data/collections";
-import { Work } from "../lib/types";
+import { Work, Collection } from "../lib/types";
 
 interface GalleryViewProps {
   onImageClick: (index: number) => void;
@@ -13,12 +12,12 @@ export default function GalleryView({
   onImageClick,
   onWorksChange,
 }: GalleryViewProps) {
-  const [activeFilter, setActiveFilter] = useState<string>(
-    collections[0]?.id || ""
-  );
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [activeFilter, setActiveFilter] = useState<string>("");
   const [currentWorks, setCurrentWorks] = useState<Work[]>([]);
   const [currentCollection, setCurrentCollection] = useState(0);
   const [containerHeight, setContainerHeight] = useState(600);
+  const [loading, setLoading] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isTabClickingRef = useRef(false);
@@ -34,13 +33,52 @@ export default function GalleryView({
   };
 
   useEffect(() => {
-    const allWorks = getAllWorks();
-    setCurrentWorks(allWorks);
-    setCurrentCollection(0);
-    // Call onWorksChange only once during initialization
-    if (onWorksChange) {
-      onWorksChange(allWorks);
-    }
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/api/collections");
+        const data = await response.json();
+
+        setCollections(data.collections);
+        setActiveFilter(data.collections[0]?.id || "");
+
+        const allWorks = data.collections.flatMap(
+          (collection: Collection) => collection.works
+        );
+        setCurrentWorks(allWorks);
+        setCurrentCollection(0);
+
+        // Call onWorksChange only once during initialization
+        if (onWorksChange) {
+          onWorksChange(allWorks);
+        }
+      } catch (error) {
+        console.error("Error loading collections:", error);
+        // Fallback to original data if API fails
+        try {
+          const {
+            collections: fallbackCollections,
+            getAllWorks: fallbackGetAllWorks,
+          } = await import("../data/collections");
+          setCollections(fallbackCollections);
+          setActiveFilter(fallbackCollections[0]?.id || "");
+
+          const allWorks = fallbackGetAllWorks();
+          setCurrentWorks(allWorks);
+          setCurrentCollection(0);
+
+          if (onWorksChange) {
+            onWorksChange(allWorks);
+          }
+        } catch (fallbackError) {
+          console.error("Fallback also failed:", fallbackError);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, []); // Empty dependency array - only run once on mount
 
   const handleScroll = useCallback(() => {
@@ -142,6 +180,14 @@ export default function GalleryView({
       isTabClickingRef.current = false;
     }, 300);
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col flex-1 min-h-0 items-center justify-center">
+        <p>Loading collections...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
