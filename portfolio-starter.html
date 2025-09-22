@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Reiferson Collection — Vintage Baseball Photography</title>
+  <meta name="description" content="The Reiferson Collection: Vintage baseball photography featuring The Color Line, Charles M. Conlon, The Negro Leagues, and American Icon collections.">
+  <style>
+  :root{
+    --bg:#F5F3EE;--ink:#2C2C2C;--muted:#6B6B6B;--line:#E8E5DF;--surface:#FEFEFE;
+    --shadow:0 1px 2px rgba(0,0,0,.06),0 10px 40px rgba(0,0,0,.08);
+    color-scheme:light;
+  }
+  :root.dark{--bg:#1A1A1A;--ink:#E8E8E8;--muted:#A0A0A0;--line:#2F2F2F;--surface:#242424;color-scheme:dark;}
+  *{box-sizing:border-box}html,body{height:100%}body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,Apple Color Emoji,Segoe UI Emoji;background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  a{color:inherit;text-decoration:none}a:hover,a:focus{text-decoration:underline}
+  img{max-width:100%;height:auto;display:block}
+  .skip-link a{position:absolute;left:-999px;top:0;background:var(--surface);padding:.5rem .75rem;border:1px solid var(--line);border-radius:8px}
+  .skip-link a:focus{left:.5rem}
+  header.site-header{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:1rem clamp(1rem,3vw,2rem);border-bottom:1px solid var(--line);backdrop-filter:blur(6px);background:color-mix(in oklab,var(--bg) 92%,transparent)}
+  .brand{font-weight:700;letter-spacing:.04em}
+  .top-nav{display:flex;gap:1rem;align-items:center}
+  .nav-link{background:transparent;border:1px solid var(--line);padding:.5rem .75rem;border-radius:999px}
+  main{max-width:1160px;margin:0 auto;padding:clamp(1rem,3vw,2rem)}
+  .hero{padding:min(14vh,10rem) 0 2rem;text-align:center}
+  .wordmark{font-size:clamp(2.5rem,8vw,7rem);margin:0 0 .5rem;letter-spacing:.08em;font-weight:300;}
+  .tagline{color:var(--muted);margin:0;font-style:italic;}
+  /* overlay */
+  .overlay[aria-hidden="true"]{display:none}
+  .overlay{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:color-mix(in oklab,var(--bg) 80%,black 20%);backdrop-filter:blur(8px)}
+  .overlay__inner{width:min(100%,1000px);background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:14px;padding:clamp(1rem,3vw,2rem);position:relative}
+  .overlay__close{position:absolute;top:.75rem;right:.75rem;width:44px;height:44px;border-radius:999px;background:transparent;border:1px solid var(--line)}
+  .overlay__grid{list-style:none;display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));margin:0;padding:0}
+  .overlay__grid a{display:block;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+  .overlay__grid .card{display:grid;grid-template-rows:140px auto}
+  .overlay__grid .thumb{background:#ddd}
+  .overlay__grid .card-body{padding:.75rem 1rem;display:flex;justify-content:space-between;align-items:baseline}
+  .overlay__grid .count{color:var(--muted);font-variant-numeric:tabular-nums}
+  /* band */
+  .band{overflow:hidden;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+  .band__track{display:grid;grid-auto-flow:column;grid-auto-columns:260px;gap:.5rem;padding:.5rem;will-change:transform}
+  .band__item{height:180px;background:#ddd;border-radius:10px;overflow:hidden}
+  .band__item img{width:100%;height:100%;object-fit:cover}
+  /* grid cards */
+  .category-grid .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;list-style:none;margin:0;padding:0}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);display:grid;grid-template-rows:160px auto}
+  .card .thumb{background:#e5e5e5}
+  .card .card-body{padding:.75rem 1rem;display:flex;justify-content:space-between;align-items:baseline}
+  .card h3{margin:0;font-size:1.1rem}.card .count{color:var(--muted)}
+  /* galleries */
+  .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;list-style:none;margin:0;padding:0}
+  .gallery-grid li{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+  .sentinel{height:1px}
+  /* lightbox */
+  .lightbox[aria-hidden="true"]{display:none}
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);display:grid;place-items:center;z-index:200}
+  .lightbox img.lb-img{max-height:90vh;max-width:92vw}
+  .lb-close,.lb-prev,.lb-next{position:absolute;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:999px;width:44px;height:44px}
+  .lb-close{top:1rem;right:1rem}
+  .lb-prev{left:1rem;top:50%;transform:translateY(-50%)}
+  .lb-next{right:1rem;top:50%;transform:translateY(-50%)}
+  /* prose & footer */
+  .prose{max-width:70ch;margin-inline:auto}
+  .prose h1{font-size:clamp(1.75rem,4vw,2.25rem)}
+  .button{display:inline-block;padding:.65rem .9rem;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
+  footer.site-footer{display:flex;gap:1rem;align-items:center;justify-content:space-between;padding:1rem;border-top:1px solid var(--line);color:var(--muted)}
+  /* routing */
+  [data-route]{display:none}
+  [data-route].active{display:block}
+  /* skeleton */
+  .skeleton{position:relative;overflow:hidden;background:#e2e2e2}
+  .skeleton::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);transform:translateX(-100%);animation:shimmer 1.2s infinite}
+  @keyframes shimmer{to{transform:translateX(100%)}}
+  </style>
+</head>
+<body>
+<div class="skip-link"><a href="#main">Skip to content</a></div>
+
+<header class="site-header" role="banner">
+  <a class="brand" href="#/" aria-label="Home">The Reiferson Collection</a>
+  <nav class="top-nav" aria-label="Primary">
+    <button class="nav-link" data-open="work-overlay" aria-haspopup="dialog" aria-controls="work-overlay" aria-expanded="false">Collections</button>
+    <a class="nav-link" href="#/about">About</a>
+    <button id="theme-toggle" class="nav-link" aria-pressed="false" title="Toggle theme">Theme</button>
+  </nav>
+</header>
+
+<!-- Work overlay -->
+<section id="work-overlay" class="overlay" role="dialog" aria-hidden="true" aria-modal="true" aria-label="Photography collections">
+  <div class="overlay__inner">
+    <button class="overlay__close" data-close="work-overlay" aria-label="Close">×</button>
+    <h2>Collections</h2>
+    <ul class="overlay__grid" id="overlay-cats">
+      <li class="skeleton" style="height:220px"></li>
+      <li class="skeleton" style="height:220px"></li>
+      <li class="skeleton" style="height:220px"></li>
+      <li class="skeleton" style="height:220px"></li>
+    </ul>
+    <p class="overlay__more"><a href="#/collections">Browse all collections</a></p>
+  </div>
+</section>
+
+<main id="main" tabindex="-1">
+  <!-- HOME -->
+  <section id="route-home" data-route>
+    <section class="hero">
+      <h1 class="wordmark">The Reiferson Collection</h1>
+      <p class="tagline">Vintage Baseball Photography / Historical Archives</p>
+    </section>
+
+    <section class="band" aria-label="Featured images">
+      <div class="band__track" id="band-track">
+        <div class="band__item skeleton"></div>
+        <div class="band__item skeleton"></div>
+        <div class="band__item skeleton"></div>
+        <div class="band__item skeleton"></div>
+        <div class="band__item skeleton"></div>
+      </div>
+    </section>
+
+    <section class="category-grid" aria-labelledby="work-sections">
+      <h2 id="work-sections">Photography Collections</h2>
+      <ul class="grid" id="home-cats"></ul>
+    </section>
+
+    <section class="special">
+      <a class="button" href="#/100photos">/100Photos</a>
+    </section>
+  </section>
+
+  <!-- WORK HUB -->
+  <section id="route-work" data-route>
+    <section class="page-title">
+      <h1>Collections</h1>
+      <div class="view-toggle" role="group" aria-label="Change view">
+        <button class="button" data-view="grid" aria-pressed="true">Grid</button>
+        <button class="button" data-view="scroll" aria-pressed="false">Scroll</button>
+      </div>
+    </section>
+
+    <section id="work-view-grid" class="category-grid is-active" data-view="grid">
+      <ul class="grid" id="work-cats-grid"></ul>
+    </section>
+
+    <section id="work-view-scroll" class="band" data-view="scroll" hidden>
+      <div class="band__track" id="work-band-track"></div>
+    </section>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="route-about" data-route>
+    <article class="prose">
+      <h1>About</h1>
+      <p>The Reiferson Collection preserves the visual history of baseball through vintage photography, documenting pivotal moments in America's pastime. From the breaking of the color line to the artistry of the game itself, these collections tell the stories that shaped our national sport.</p>
+      
+      <p>Each photograph serves as a window into baseball's rich heritage, capturing not just the players and games, but the cultural and social significance of America's favorite pastime during its most transformative eras.</p>
+      
+      <h2>Collections</h2>
+      <ul>
+        <li><strong>The Color Line and Jackie Robinson</strong> — The integration of baseball and its lasting impact</li>
+        <li><strong>Charles M. Conlon</strong> — Master photographer of baseball's golden age</li>
+        <li><strong>The Negro Leagues</strong> — Celebrating the talent and perseverance of Black baseball</li>
+        <li><strong>American Icon: The Baseball as Art and Invention</strong> — The evolution of the game's equipment and artistry</li>
+      </ul>
+      
+      <h2>Contact</h2>
+      <ul>
+        <li>Email: <a href="mailto:curator@reifersoncollection.com">curator@reifersoncollection.com</a></li>
+        <li>Archive inquiries welcome</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- CATEGORY: The Color Line -->
+  <section id="route-color-line" data-route>
+    <section class="page-title">
+      <nav class="breadcrumb" aria-label="Breadcrumb"><a href="#/collections">Collections</a> / <span>The Color Line</span></nav>
+      <h1>The Color Line and Jackie Robinson</h1>
+    </section>
+    <section class="gallery" aria-live="polite">
+      <ul class="gallery-grid" id="grid-color-line"></ul>
+      <div class="sentinel" id="sentinel-color-line" aria-hidden="true"></div>
+    </section>
+  </section>
+
+  <!-- CATEGORY: Charles M. Conlon -->
+  <section id="route-conlon" data-route>
+    <section class="page-title">
+      <nav class="breadcrumb" aria-label="Breadcrumb"><a href="#/collections">Collections</a> / <span>Charles M. Conlon</span></nav>
+      <h1>Charles M. Conlon</h1>
+    </section>
+    <section class="gallery" aria-live="polite">
+      <ul class="gallery-grid" id="grid-conlon"></ul>
+      <div class="sentinel" id="sentinel-conlon" aria-hidden="true"></div>
+    </section>
+  </section>
+
+  <!-- CATEGORY: Negro Leagues -->
+  <section id="route-negro-leagues" data-route>
+    <section class="page-title">
+      <nav class="breadcrumb" aria-label="Breadcrumb"><a href="#/collections">Collections</a> / <span>Negro Leagues</span></nav>
+      <h1>The Negro Leagues</h1>
+    </section>
+    <section class="gallery" aria-live="polite">
+      <ul class="gallery-grid" id="grid-negro-leagues"></ul>
+      <div class="sentinel" id="sentinel-negro-leagues" aria-hidden="true"></div>
+    </section>
+  </section>
+
+  <!-- CATEGORY: American Icon -->
+  <section id="route-american-icon" data-route>
+    <section class="page-title">
+      <nav class="breadcrumb" aria-label="Breadcrumb"><a href="#/collections">Collections</a> / <span>American Icon</span></nav>
+      <h1>American Icon: The Baseball as Art and Invention</h1>
+    </section>
+    <section class="gallery" aria-live="polite">
+      <ul class="gallery-grid" id="grid-american-icon"></ul>
+      <div class="sentinel" id="sentinel-american-icon" aria-hidden="true"></div>
+    </section>
+  </section>
+
+  <!-- /100Photos -->
+  <section id="route-100photos" data-route>
+    <section class="page-title">
+      <h1>/100Photos</h1>
+      <p>An alternate gallery route.</p>
+    </section>
+    <section class="gallery" aria-live="polite">
+      <ul class="gallery-grid" id="photos100-grid"></ul>
+    </section>
+  </section>
+</main>
+
+<!-- Lightbox (shared) -->
+<div class="lightbox" role="dialog" aria-modal="true" aria-hidden="true">
+  <button class="lb-close" aria-label="Close (Esc)">×</button>
+  <button class="lb-prev" aria-label="Previous image">‹</button>
+  <img class="lb-img" alt="">
+  <button class="lb-next" aria-label="Next image">›</button>
+</div>
+
+<footer class="site-footer" role="contentinfo">
+  <p>© <span id="year"></span> Your Name. Built from a clean-room template.</p>
+  <nav aria-label="Footer">
+    <a href="#/about">About</a>
+    <a href="#/100photos">100 Photos</a>
+  </nav>
+</footer>
+
+<!-- Data (inline JSON you can edit) -->
+<script id="gallery-data" type="application/json">
+{
+  "categories": [
+    {"name":"The Color Line and Jackie Robinson","href":"#/collections/color-line","count":60},
+    {"name":"Charles M. Conlon","href":"#/collections/conlon","count":45},
+    {"name":"The Negro Leagues","href":"#/collections/negro-leagues","count":38},
+    {"name":"American Icon: The Baseball as Art and Invention","href":"#/collections/american-icon","count":42}
+  ],
+  "images": ["vintage-1.jpg","vintage-2.jpg","vintage-3.jpg","vintage-4.jpg","vintage-5.jpg","vintage-6.jpg","vintage-7.jpg","vintage-8.jpg","vintage-9.jpg","vintage-10.jpg","vintage-11.jpg","vintage-12.jpg","vintage-13.jpg","vintage-14.jpg","vintage-15.jpg","vintage-16.jpg","vintage-17.jpg","vintage-18.jpg","vintage-19.jpg","vintage-20.jpg","vintage-21.jpg","vintage-22.jpg","vintage-23.jpg","vintage-24.jpg","vintage-25.jpg","vintage-26.jpg","vintage-27.jpg","vintage-28.jpg","vintage-29.jpg","vintage-30.jpg","vintage-31.jpg","vintage-32.jpg","vintage-33.jpg","vintage-34.jpg","vintage-35.jpg","vintage-36.jpg","vintage-37.jpg","vintage-38.jpg","vintage-39.jpg","vintage-40.jpg","vintage-41.jpg","vintage-42.jpg","vintage-43.jpg","vintage-44.jpg","vintage-45.jpg","vintage-46.jpg","vintage-47.jpg","vintage-48.jpg","vintage-49.jpg","vintage-50.jpg"],
+  "category_images": {
+    "color-line": ["color-line-1.jpg","color-line-2.jpg","color-line-3.jpg","color-line-4.jpg","color-line-5.jpg","color-line-6.jpg","color-line-7.jpg","color-line-8.jpg","color-line-9.jpg","color-line-10.jpg","color-line-11.jpg","color-line-12.jpg","color-line-13.jpg","color-line-14.jpg","color-line-15.jpg","color-line-16.jpg","color-line-17.jpg","color-line-18.jpg","color-line-19.jpg","color-line-20.jpg","color-line-21.jpg","color-line-22.jpg","color-line-23.jpg","color-line-24.jpg","color-line-25.jpg","color-line-26.jpg","color-line-27.jpg","color-line-28.jpg","color-line-29.jpg","color-line-30.jpg","color-line-31.jpg","color-line-32.jpg","color-line-33.jpg","color-line-34.jpg","color-line-35.jpg","color-line-36.jpg","color-line-37.jpg","color-line-38.jpg","color-line-39.jpg","color-line-40.jpg","color-line-41.jpg","color-line-42.jpg","color-line-43.jpg","color-line-44.jpg","color-line-45.jpg","color-line-46.jpg","color-line-47.jpg","color-line-48.jpg","color-line-49.jpg","color-line-50.jpg","color-line-51.jpg","color-line-52.jpg","color-line-53.jpg","color-line-54.jpg","color-line-55.jpg","color-line-56.jpg","color-line-57.jpg","color-line-58.jpg","color-line-59.jpg","color-line-60.jpg"],
+    "conlon": ["conlon-1.jpg","conlon-2.jpg","conlon-3.jpg","conlon-4.jpg","conlon-5.jpg","conlon-6.jpg","conlon-7.jpg","conlon-8.jpg","conlon-9.jpg","conlon-10.jpg","conlon-11.jpg","conlon-12.jpg","conlon-13.jpg","conlon-14.jpg","conlon-15.jpg","conlon-16.jpg","conlon-17.jpg","conlon-18.jpg","conlon-19.jpg","conlon-20.jpg","conlon-21.jpg","conlon-22.jpg","conlon-23.jpg","conlon-24.jpg","conlon-25.jpg","conlon-26.jpg","conlon-27.jpg","conlon-28.jpg","conlon-29.jpg","conlon-30.jpg","conlon-31.jpg","conlon-32.jpg","conlon-33.jpg","conlon-34.jpg","conlon-35.jpg","conlon-36.jpg","conlon-37.jpg","conlon-38.jpg","conlon-39.jpg","conlon-40.jpg","conlon-41.jpg","conlon-42.jpg","conlon-43.jpg","conlon-44.jpg","conlon-45.jpg"],
+    "negro-leagues": ["negro-leagues-1.jpg","negro-leagues-2.jpg","negro-leagues-3.jpg","negro-leagues-4.jpg","negro-leagues-5.jpg","negro-leagues-6.jpg","negro-leagues-7.jpg","negro-leagues-8.jpg","negro-leagues-9.jpg","negro-leagues-10.jpg","negro-leagues-11.jpg","negro-leagues-12.jpg","negro-leagues-13.jpg","negro-leagues-14.jpg","negro-leagues-15.jpg","negro-leagues-16.jpg","negro-leagues-17.jpg","negro-leagues-18.jpg","negro-leagues-19.jpg","negro-leagues-20.jpg","negro-leagues-21.jpg","negro-leagues-22.jpg","negro-leagues-23.jpg","negro-leagues-24.jpg","negro-leagues-25.jpg","negro-leagues-26.jpg","negro-leagues-27.jpg","negro-leagues-28.jpg","negro-leagues-29.jpg","negro-leagues-30.jpg","negro-leagues-31.jpg","negro-leagues-32.jpg","negro-leagues-33.jpg","negro-leagues-34.jpg","negro-leagues-35.jpg","negro-leagues-36.jpg","negro-leagues-37.jpg","negro-leagues-38.jpg"],
+    "american-icon": ["american-icon-1.jpg","american-icon-2.jpg","american-icon-3.jpg","american-icon-4.jpg","american-icon-5.jpg","american-icon-6.jpg","american-icon-7.jpg","american-icon-8.jpg","american-icon-9.jpg","american-icon-10.jpg","american-icon-11.jpg","american-icon-12.jpg","american-icon-13.jpg","american-icon-14.jpg","american-icon-15.jpg","american-icon-16.jpg","american-icon-17.jpg","american-icon-18.jpg","american-icon-19.jpg","american-icon-20.jpg","american-icon-21.jpg","american-icon-22.jpg","american-icon-23.jpg","american-icon-24.jpg","american-icon-25.jpg","american-icon-26.jpg","american-icon-27.jpg","american-icon-28.jpg","american-icon-29.jpg","american-icon-30.jpg","american-icon-31.jpg","american-icon-32.jpg","american-icon-33.jpg","american-icon-34.jpg","american-icon-35.jpg","american-icon-36.jpg","american-icon-37.jpg","american-icon-38.jpg","american-icon-39.jpg","american-icon-40.jpg","american-icon-41.jpg","american-icon-42.jpg"]
+  }
+}
+</script>
+
+<!-- Single-file JS -->
+<script>
+(() => {
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+  // Theme toggle
+  const themeBtn = document.getElementById('theme-toggle');
+  const root = document.documentElement;
+  const setTheme = (t) => { t==='dark'?root.classList.add('dark'):root.classList.remove('dark'); localStorage.setItem('theme',t); };
+  const initial = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark':'light');
+  setTheme(initial); if(themeBtn){ themeBtn.setAttribute('aria-pressed', initial==='dark'?'true':'false'); themeBtn.addEventListener('click',()=>{ const next = root.classList.contains('dark')?'light':'dark'; setTheme(next); themeBtn.setAttribute('aria-pressed', next==='dark'?'true':'false'); });}
+
+  // Footer year
+  const year = document.getElementById('year'); if(year) year.textContent = new Date().getFullYear();
+
+  // Overlay open/close
+  const overlay = $('#work-overlay'); const openBtn = document.querySelector('[data-open="work-overlay"]'); const closeBtn = document.querySelector('[data-close="work-overlay"]');
+  if(overlay && openBtn && closeBtn){
+    openBtn.addEventListener('click',()=>{ overlay.setAttribute('aria-hidden','false'); openBtn.setAttribute('aria-expanded','true'); document.body.style.overflow='hidden'; closeBtn.focus(); });
+    const close = ()=>{ overlay.setAttribute('aria-hidden','true'); openBtn.setAttribute('aria-expanded','false'); document.body.style.overflow=''; openBtn.focus(); };
+    closeBtn.addEventListener('click',close);
+    overlay.addEventListener('click',e=>{ if(e.target===overlay) close(); });
+    document.addEventListener('keydown',e=>{ if(e.key==='Escape' && overlay.getAttribute('aria-hidden')==='false') close(); });
+  }
+
+  // Routing (hash-based)
+  const routes = {
+    "": "route-home",
+    "/": "route-home",
+    "/collections": "route-work",
+    "/about": "route-about",
+    "/collections/color-line": "route-color-line",
+    "/collections/conlon": "route-conlon",
+    "/collections/negro-leagues": "route-negro-leagues",
+    "/collections/american-icon": "route-american-icon",
+    "/100photos": "route-100photos"
+  };
+  function showRoute(){
+    const hash = location.hash.replace(/^#/, '');
+    const id = routes[hash] || routes["/"];
+    $$('#main [data-route]').forEach(s=>s.classList.remove('active'));
+    const section = document.getElementById(id);
+    if(section){ section.classList.add('active'); section.scrollIntoView({behavior:'instant', block:'start'}); }
+  }
+  window.addEventListener('hashchange', showRoute);
+  if(!location.hash) location.hash = "/";
+  showRoute();
+
+  // Inline "data.json"
+  const data = JSON.parse(document.getElementById('gallery-data').textContent);
+  const cats = data.categories, images = data.images;
+
+  // Build overlay categories
+  const overlayUL = $('#overlay-cats');
+  if(overlayUL){
+    overlayUL.innerHTML = cats.map(c => ``
+      <li>
+        <a class="card" href="${c.href}">
+          <div class="thumb"></div>
+          <div class="card-body">
+            <h3>${c.name}</h3><span class="count">(${c.count})</span>
+          </div>
+        </a>
+      </li>`).join('');
+  }
+
+  // Home categories
+  const homeCats = $('#home-cats');
+  if(homeCats){
+    homeCats.innerHTML = cats.map(c => ``
+      <li>
+        <a class="card" href="${c.href}">
+          <div class="thumb"></div>
+          <div class="card-body"><h3>${c.name}</h3><span class="count">(${c.count})</span></div>
+        </a>
+      </li>`).join('');
+  }
+
+  // Bands (home + work)
+  const band = $('#band-track');
+  const workBand = $('#work-band-track');
+  const ph = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1200 800\"><rect width=\"1200\" height=\"800\" fill=\"#ddd\"/><text x=\"50%\" y=\"50%\" fill=\"#888\" font-family=\"system-ui\" font-size=\"72\" dominant-baseline=\"middle\" text-anchor=\"middle\">Placeholder</text></svg>');
+  function renderBand(el, start, end){
+    if(!el) return;
+    const slice = images.slice(start,end);
+    el.innerHTML = slice.map(()=>`<div class="band__item"><img loading="lazy" decoding="async" src="${ph}" alt="Featured placeholder"></div>`).join('');
+  }
+  renderBand(band, 0, 24);
+  renderBand(workBand, 24, 60);
+  // gentle drift
+  function drift(el){ if(!el) return; let x=0; const step=()=>{ x+=0.15; el.style.transform=`translateX(${-x}px)`; requestAnimationFrame(step); }; step(); }
+  drift(band); drift(workBand);
+
+  // Work hub view toggle
+  const viewButtons = document.querySelectorAll('.view-toggle [data-view]');
+  const grid = document.getElementById('work-view-grid');
+  const scroll = document.getElementById('work-view-scroll');
+  viewButtons.forEach(btn=>{
+    btn.addEventListener('click',()=>{
