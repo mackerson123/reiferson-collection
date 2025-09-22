@@ -31,33 +31,33 @@ export default function ImageDetailView({
     <main className="flex-1 bg-[#F1EFE7] min-h-0 relative">
       {/* Top Navigation Bar */}
       <div className="absolute top-0 left-0 right-0 z-10 bg-[#F1EFE7]/95 backdrop-blur-sm border-b border-black/10">
-        <div className="flex justify-between items-center px-8 py-4">
+        <div className="flex justify-between items-center px-4 md:px-8 py-3 md:py-4">
           <button
             onClick={onBack}
-            className="text-utility tracking-[0.05em] font-medium hover:opacity-60 transition-opacity"
-            style={{ fontSize: "0.9em" }}
+            className="text-xs md:text-utility tracking-[0.05em] font-medium hover:opacity-60 transition-opacity"
           >
-            ← Back to gallery
+            ← <span className="hidden sm:inline">Back to gallery</span>
+            <span className="sm:hidden">Back</span>
           </button>
 
-          <div className="flex items-center gap-6">
-            <span className="text-utility opacity-60 text-sm">
+          <div className="flex items-center gap-2 md:gap-6">
+            <span className="text-xs md:text-utility opacity-60">
               {selectedImageIndex + 1} of {currentWorks.length}
             </span>
-            <div className="flex gap-3">
+            <div className="flex gap-1 md:gap-3">
               <button
                 onClick={onPrevious}
-                className="text-utility tracking-[0.05em] font-medium hover:opacity-60 transition-opacity px-3 py-1 border border-black/20 rounded hover:border-black/40"
-                style={{ fontSize: "0.85em" }}
+                className="text-xs md:text-utility tracking-[0.05em] font-medium hover:opacity-60 transition-opacity px-2 md:px-3 py-1 border border-black/20 rounded hover:border-black/40"
               >
-                ← Previous
+                <span className="hidden md:inline">← Previous</span>
+                <span className="md:hidden">←</span>
               </button>
               <button
                 onClick={onNext}
-                className="text-utility tracking-[0.05em] font-medium hover:opacity-60 transition-opacity px-3 py-1 border border-black/20 rounded hover:border-black/40"
-                style={{ fontSize: "0.85em" }}
+                className="text-xs md:text-utility tracking-[0.05em] font-medium hover:opacity-60 transition-opacity px-2 md:px-3 py-1 border border-black/20 rounded hover:border-black/40"
               >
-                Next →
+                <span className="hidden md:inline">Next →</span>
+                <span className="md:hidden">→</span>
               </button>
             </div>
           </div>
@@ -65,9 +65,9 @@ export default function ImageDetailView({
       </div>
 
       {/* Main Content Area */}
-      <div className="h-full flex pt-16">
+      <div className="h-full flex flex-col md:flex-row pt-12 md:pt-16">
         {/* Image Section */}
-        <div className="w-3/5 flex items-center justify-center p-8">
+        <div className="w-full md:w-3/5 flex items-center justify-center p-4 md:p-8">
           <div className="max-w-full max-h-full flex items-center justify-center">
             <img
               src={
@@ -78,20 +78,20 @@ export default function ImageDetailView({
                 currentWorks[selectedImageIndex]?.title ||
                 `Work ${selectedImageIndex + 1}`
               }
-              className="max-w-full max-h-[75vh] object-contain shadow-lg"
+              className="max-w-full max-h-[40vh] md:max-h-[75vh] object-contain shadow-lg"
             />
           </div>
         </div>
 
         {/* Information Panel */}
-        <div className="w-2/5 border-l border-black/10 bg-[#F1EFE7] flex flex-col">
+        <div className="w-full md:w-2/5 border-t md:border-t-0 md:border-l border-black/10 bg-[#F1EFE7] flex flex-col">
           {/* Scrollable Tab Navigation */}
-          <div className="border-b border-black/10 px-6 bg-[#F1EFE7]">
+          <div className="border-b border-black/10 px-4 md:px-6 bg-[#F1EFE7]">
             <div
               className="overflow-x-auto scrollbar-hide"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
-              <div className="flex gap-6 min-w-max">
+              <div className="flex gap-3 md:gap-6 min-w-max">
                 {(
                   [
                     "narrative",
@@ -105,7 +105,7 @@ export default function ImageDetailView({
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`py-4 text-sm font-medium tracking-[0.05em] capitalize transition-colors whitespace-nowrap relative ${
+                    className={`py-3 md:py-4 text-xs md:text-sm font-medium tracking-[0.05em] capitalize transition-colors whitespace-nowrap relative ${
                       activeTab === tab
                         ? "text-black"
                         : "text-black/60 hover:text-black/80"
@@ -122,7 +122,7 @@ export default function ImageDetailView({
           </div>
 
           {/* Content Area */}
-          <div className="flex-1 overflow-y-auto px-6 py-6">
+          <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
             {activeTab === "narrative" && (
               <div className="text-content-copy leading-relaxed space-y-4">
                 <p>

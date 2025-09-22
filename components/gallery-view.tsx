@@ -18,6 +18,7 @@ export default function GalleryView({
   const [currentCollection, setCurrentCollection] = useState(0);
   const [containerHeight, setContainerHeight] = useState(600);
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isTabClickingRef = useRef(false);
@@ -26,6 +27,16 @@ export default function GalleryView({
     const imageHeight = 130;
     const imageSpacing = 172;
     const topPadding = 40;
+    return Math.max(
+      1,
+      Math.floor((height - topPadding - imageHeight) / imageSpacing) + 1
+    );
+  };
+
+  const calculateMobileRows = (height: number) => {
+    const imageHeight = 100; // Smaller on mobile
+    const imageSpacing = 120; // Tighter spacing on mobile
+    const topPadding = 20;
     return Math.max(
       1,
       Math.floor((height - topPadding - imageHeight) / imageSpacing) + 1
@@ -78,7 +89,19 @@ export default function GalleryView({
       }
     };
 
+    // Check if mobile on mount and on resize
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
     loadData();
+
+    return () => {
+      window.removeEventListener("resize", checkMobile);
+    };
   }, []); // Empty dependency array - only run once on mount
 
   const handleScroll = useCallback(() => {
@@ -88,12 +111,18 @@ export default function GalleryView({
     const scrollLeft = container.scrollLeft;
     const containerWidth = container.clientWidth;
 
+    // Use responsive calculations
+    const colSpacing = isMobile ? 120 : 200;
+    const leftPadding = isMobile ? 16 : 32;
+    const rows = isMobile
+      ? calculateMobileRows(containerHeight)
+      : calculateRows(containerHeight);
+
     // Calculate which column is in the center of the viewport
     const viewportCenter = scrollLeft + containerWidth / 2;
-    const adjustedCenter = viewportCenter - 32; // Account for left padding
-    const centerColumn = Math.floor(adjustedCenter / 200);
+    const adjustedCenter = viewportCenter - leftPadding;
+    const centerColumn = Math.floor(adjustedCenter / colSpacing);
 
-    const rows = calculateRows(containerHeight);
     const centerImageIndex = Math.max(0, centerColumn * rows);
 
     // Find which collection this image belongs to
@@ -113,7 +142,7 @@ export default function GalleryView({
     if (visibleCollectionId) {
       setActiveFilter(visibleCollectionId);
     }
-  }, [containerHeight]);
+  }, [containerHeight, isMobile]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -149,10 +178,15 @@ export default function GalleryView({
 
   const handleFilterChange = (filter: string) => {
     isTabClickingRef.current = true;
+
+    // Set the active filter immediately and keep it locked during animation
     setActiveFilter(filter);
 
     const container = scrollContainerRef.current;
-    if (!container) return;
+    if (!container) {
+      isTabClickingRef.current = false;
+      return;
+    }
 
     let startIndex = 0;
     for (let i = 0; i < collections.length; i++) {
@@ -160,14 +194,15 @@ export default function GalleryView({
       startIndex += collections[i].works.length;
     }
 
-    const rows = calculateRows(containerHeight);
-    const col = Math.floor(startIndex / rows);
-    const targetX = col * 200;
+    // Use responsive calculations based on mobile/desktop
+    const rows = isMobile
+      ? calculateMobileRows(containerHeight)
+      : calculateRows(containerHeight);
+    const colSpacing = isMobile ? 120 : 200;
+    const leftPadding = isMobile ? 16 : 32;
 
-    container.scrollTo({
-      left: targetX - 32,
-      behavior: "smooth",
-    });
+    const col = Math.floor(startIndex / rows);
+    const targetX = col * colSpacing;
 
     const clickedIndex = Math.max(
       0,
@@ -175,10 +210,19 @@ export default function GalleryView({
     );
     setCurrentCollection(clickedIndex);
 
+    container.scrollTo({
+      left: targetX - leftPadding,
+      behavior: "smooth",
+    });
+
     // Allow scroll updates again after scroll animation completes
-    setTimeout(() => {
-      isTabClickingRef.current = false;
-    }, 300);
+    // Use longer timeout on mobile to account for slower scroll animations
+    setTimeout(
+      () => {
+        isTabClickingRef.current = false;
+      },
+      isMobile ? 500 : 300
+    );
   };
 
   if (loading) {
@@ -191,24 +235,51 @@ export default function GalleryView({
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      <div className="sticky top-0 z-40 bg-[#F1EFE7] border-b border-black/10 px-6 md:px-8">
-        <div className="flex gap-4 md:gap-6 overflow-x-auto">
-          {collections.map((collection) => (
-            <button
-              key={collection.id}
-              onClick={() => handleFilterChange(collection.id)}
-              className={`py-4 text-utility tracking-[0.05em] font-medium whitespace-nowrap relative transition-colors ${
-                activeFilter === collection.id
-                  ? "text-black"
-                  : "text-black/60 hover:text-black/80"
-              }`}
-            >
-              {collection.name} ({collection.works.length})
-              {activeFilter === collection.id && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black"></div>
-              )}
-            </button>
-          ))}
+      <div className="sticky top-0 z-40 bg-[#F1EFE7] border-b border-black/10">
+        {/* Mobile: Centered tabs with horizontal overflow support */}
+        <div className="sm:hidden">
+          <div className="overflow-x-auto scrollbar-hide px-4 py-3">
+            <div className="flex gap-8 items-center justify-center min-w-max">
+              {collections.map((collection) => (
+                <button
+                  key={collection.id}
+                  onClick={() => handleFilterChange(collection.id)}
+                  className={`relative py-2 px-1 text-sm font-medium tracking-[0.05em] transition-all duration-200 whitespace-nowrap ${
+                    activeFilter === collection.id
+                      ? "text-black"
+                      : "text-black/50 hover:text-black/75"
+                  }`}
+                >
+                  {collection.name}
+                  {activeFilter === collection.id && (
+                    <div className="absolute -bottom-3 left-0 right-0 h-0.5 bg-black rounded-full"></div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop: Original horizontal scrolling layout */}
+        <div className="hidden sm:block px-6 md:px-8">
+          <div className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide">
+            {collections.map((collection) => (
+              <button
+                key={collection.id}
+                onClick={() => handleFilterChange(collection.id)}
+                className={`py-4 text-utility tracking-[0.05em] font-medium whitespace-nowrap relative transition-colors ${
+                  activeFilter === collection.id
+                    ? "text-black"
+                    : "text-black/60 hover:text-black/80"
+                }`}
+              >
+                {collection.name} ({collection.works.length})
+                {activeFilter === collection.id && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black"></div>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -227,32 +298,45 @@ export default function GalleryView({
             style={{
               width: `${
                 Math.ceil(
-                  currentWorks.length / calculateRows(containerHeight)
+                  currentWorks.length /
+                    (isMobile
+                      ? calculateMobileRows(containerHeight)
+                      : calculateRows(containerHeight))
                 ) *
-                  200 +
-                52
+                  (isMobile ? 120 : 200) +
+                (isMobile ? 36 : 52)
               }px`,
               minHeight: "100%",
-              paddingLeft: "32px",
+              paddingLeft: isMobile ? "16px" : "32px",
               paddingRight: "20px",
             }}
           >
             {currentWorks.map((work, index) => {
-              const rows = calculateRows(containerHeight);
+              const rows = isMobile
+                ? calculateMobileRows(containerHeight)
+                : calculateRows(containerHeight);
               const row = index % rows;
               const col = Math.floor(index / rows);
-              const x = col * 200 + 32; // Add 32px left padding
-              const y = row * 172 + 40;
+
+              // Mobile responsive sizing
+              const imageSize = isMobile ? 100 : 130;
+              const colSpacing = isMobile ? 120 : 200;
+              const rowSpacing = isMobile ? 120 : 172;
+              const leftPadding = isMobile ? 16 : 32;
+              const topPadding = isMobile ? 20 : 40;
+
+              const x = col * colSpacing + leftPadding;
+              const y = row * rowSpacing + topPadding;
 
               return (
                 <div
                   key={work.id}
-                  className="absolute cursor-pointer hover:scale-105 transition-transform duration-200"
+                  className="absolute cursor-pointer hover:scale-105 active:scale-95 transition-transform duration-200"
                   style={{
                     left: `${x}px`,
                     top: `${y}px`,
-                    width: "130px",
-                    height: "130px",
+                    width: `${imageSize}px`,
+                    height: `${imageSize}px`,
                   }}
                   onClick={() => onImageClick(index)}
                 >
@@ -270,7 +354,11 @@ export default function GalleryView({
                       e.currentTarget.src = "/vintage-baseball-photograph.png";
                     }}
                   />
-                  <div className="absolute top-1 left-1 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
+                  <div
+                    className={`absolute top-1 left-1 bg-black/70 text-white ${
+                      isMobile ? "text-xs px-1 py-0.5" : "text-xs px-1 py-0.5"
+                    } rounded`}
+                  >
                     {index + 1}
                   </div>
                 </div>
@@ -279,18 +367,19 @@ export default function GalleryView({
           </div>
         </div>
 
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-center px-4 py-2 z-10">
-          <div className="text-content-title font-bold tracking-[0.02em]">
+        <div className="absolute bottom-2 md:bottom-4 left-1/2 transform -translate-x-1/2 text-center px-2 md:px-4 py-1 md:py-2 z-10">
+          <div className="text-sm md:text-content-title font-bold tracking-[0.02em]">
             {collections.find((c) => c.id === activeFilter)?.name ||
               "Collection"}
-            <span className="text-lg font-normal">
+            <span className="text-sm md:text-lg font-normal">
+              {" "}
               (
               {collections.find((c) => c.id === activeFilter)?.works.length ||
                 0}
               )
             </span>
           </div>
-          <div className="text-utility opacity-60 tracking-[0.05em]">
+          <div className="text-xs md:text-utility opacity-60 tracking-[0.05em]">
             /{collections.reduce((sum, c) => sum + c.works.length, 0)} photos
           </div>
         </div>
