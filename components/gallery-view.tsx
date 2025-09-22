@@ -17,88 +17,48 @@ export default function GalleryView({
     collections[0]?.id || ""
   );
   const [currentWorks, setCurrentWorks] = useState<Work[]>([]);
-  const [scrollPosition, setScrollPosition] = useState(0);
   const [currentCollection, setCurrentCollection] = useState(0);
-  const [containerDimensions, setContainerDimensions] = useState({
-    width: 0,
-    height: 600,
-  });
+  const [containerHeight, setContainerHeight] = useState(600);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const isTabClickingRef = useRef(false);
 
-  const getImagePosition = (index: number, availableHeight: number) => {
+  const calculateRows = (height: number) => {
     const imageHeight = 130;
     const imageSpacing = 172;
     const topPadding = 40;
-    const bottomPadding = 80; // Space for bottom collection info but allow images behind it
-
-    // Calculate how many rows can fit, allowing images to go behind bottom title
-    const maxRows =
-      Math.floor((availableHeight - topPadding - imageHeight) / imageSpacing) +
-      1;
-    const actualRows = Math.max(1, maxRows);
-
-    const row = index % actualRows;
-    const col = Math.floor(index / actualRows);
-    const baseX = col * 200;
-    const baseY = row * imageSpacing + topPadding;
-    return { x: baseX, y: baseY, actualRows };
-  };
-
-  const getImageSize = (index: number) => {
-    return { width: 130, height: 130 };
+    return Math.max(
+      1,
+      Math.floor((height - topPadding - imageHeight) / imageSpacing) + 1
+    );
   };
 
   useEffect(() => {
     const allWorks = getAllWorks();
-    const targetWorkCount = allWorks.length;
-    const extendedWorks: Work[] = [];
-    while (extendedWorks.length < targetWorkCount) {
-      extendedWorks.push(...allWorks);
-    }
-    const finalWorks = extendedWorks.slice(0, targetWorkCount);
-    setCurrentWorks(finalWorks);
-    onWorksChange?.(finalWorks);
-    setScrollPosition(0);
+    setCurrentWorks(allWorks);
     setCurrentCollection(0);
-  }, [onWorksChange]);
+    // Call onWorksChange only once during initialization
+    if (onWorksChange) {
+      onWorksChange(allWorks);
+    }
+  }, []); // Empty dependency array - only run once on mount
 
   const handleScroll = useCallback(() => {
-    if (!scrollContainerRef.current) return;
+    if (!scrollContainerRef.current || isTabClickingRef.current) return;
+
     const container = scrollContainerRef.current;
     const scrollLeft = container.scrollLeft;
     const containerWidth = container.clientWidth;
-    const totalWidth = container.scrollWidth;
-    const singleSetWidth = totalWidth / 3;
 
-    if (scrollLeft >= singleSetWidth * 2 - 100) {
-      container.scrollLeft = scrollLeft - singleSetWidth;
-    } else if (scrollLeft <= 100) {
-      container.scrollLeft = singleSetWidth + scrollLeft;
-    }
+    // Calculate which column is in the center of the viewport
+    const viewportCenter = scrollLeft + containerWidth / 2;
+    const adjustedCenter = viewportCenter - 32; // Account for left padding
+    const centerColumn = Math.floor(adjustedCenter / 200);
 
-    const currentScrollLeft = container.scrollLeft;
-    const viewportCenter = currentScrollLeft + containerWidth / 2;
-    const normalizedViewportCenter =
-      (viewportCenter - singleSetWidth) / singleSetWidth;
-    setScrollPosition(Math.max(0, Math.min(1, normalizedViewportCenter)));
+    const rows = calculateRows(containerHeight);
+    const centerImageIndex = Math.max(0, centerColumn * rows);
 
-    const availableHeight = containerDimensions.height || 600;
-    const { actualRows } = getImagePosition(0, availableHeight);
-    const columnWidth = 200;
-    // Center position within the middle set [0, singleSetWidth)
-    let centerWithinSet = viewportCenter - singleSetWidth;
-    // Normalize in case of any rounding drift
-    centerWithinSet =
-      ((centerWithinSet % singleSetWidth) + singleSetWidth) % singleSetWidth;
-    const centerColumn = Math.floor(centerWithinSet / columnWidth);
-
-    const totalWorks = currentWorks.length;
-    const centerImageIndex = Math.max(
-      0,
-      Math.min(totalWorks - 1, centerColumn * actualRows)
-    );
-
+    // Find which collection this image belongs to
     let running = 0;
     let collectionIndex = 0;
     for (let i = 0; i < collections.length; i++) {
@@ -109,46 +69,42 @@ export default function GalleryView({
       }
       running = next;
     }
-    setCurrentCollection(collectionIndex);
 
+    setCurrentCollection(collectionIndex);
     const visibleCollectionId = collections[collectionIndex]?.id;
-    if (visibleCollectionId && !isTabClickingRef.current) {
+    if (visibleCollectionId) {
       setActiveFilter(visibleCollectionId);
     }
-  }, [containerDimensions.height, currentWorks.length]);
+  }, [containerHeight]);
 
   useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (container) {
-      container.addEventListener("scroll", handleScroll);
+    const container = containerRef.current;
+    const scrollContainer = scrollContainerRef.current;
 
+    if (container) {
       const resizeObserver = new ResizeObserver((entries) => {
         for (const entry of entries) {
-          const newDimensions = {
-            width: entry.contentRect.width,
-            height: entry.contentRect.height,
-          };
-          setContainerDimensions(newDimensions);
+          setContainerHeight(entry.contentRect.height);
         }
       });
 
       const rect = container.getBoundingClientRect();
       if (rect.height > 0) {
-        setContainerDimensions({
-          width: rect.width,
-          height: rect.height,
-        });
+        setContainerHeight(rect.height);
       }
 
       resizeObserver.observe(container);
 
-      setTimeout(() => {
-        handleFilterChange(collections[0]?.id || "");
-      }, 100);
+      // Add scroll listener
+      if (scrollContainer) {
+        scrollContainer.addEventListener("scroll", handleScroll);
+      }
 
       return () => {
-        container.removeEventListener("scroll", handleScroll);
         resizeObserver.disconnect();
+        if (scrollContainer) {
+          scrollContainer.removeEventListener("scroll", handleScroll);
+        }
       };
     }
   }, [handleScroll]);
@@ -156,28 +112,24 @@ export default function GalleryView({
   const handleFilterChange = (filter: string) => {
     isTabClickingRef.current = true;
     setActiveFilter(filter);
+
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    const availableHeight = containerDimensions.height || 600;
-    const samplePosition = getImagePosition(0, availableHeight);
-    const actualRows = samplePosition.actualRows;
-    const columnsPerSet = Math.ceil((currentWorks.length || 1) / actualRows);
-    const baseSetWidth = columnsPerSet * 200;
-
     let startIndex = 0;
-    {
-      let offset = 0;
-      for (let i = 0; i < collections.length; i++) {
-        if (collections[i].id === filter) break;
-        offset += collections[i].works.length;
-      }
-      startIndex = offset;
+    for (let i = 0; i < collections.length; i++) {
+      if (collections[i].id === filter) break;
+      startIndex += collections[i].works.length;
     }
 
-    const position = getImagePosition(startIndex, availableHeight);
-    const leftPadding = 20;
-    container.scrollLeft = Math.max(0, baseSetWidth + position.x - leftPadding);
+    const rows = calculateRows(containerHeight);
+    const col = Math.floor(startIndex / rows);
+    const targetX = col * 200;
+
+    container.scrollTo({
+      left: targetX - 32,
+      behavior: "smooth",
+    });
 
     const clickedIndex = Math.max(
       0,
@@ -214,74 +166,74 @@ export default function GalleryView({
         </div>
       </div>
 
-      <main className="flex-1 relative" style={{ minHeight: "400px" }}>
+      <main
+        ref={containerRef}
+        className="flex-1 relative"
+        style={{ minHeight: "400px" }}
+      >
         <div
           ref={scrollContainerRef}
           className="absolute inset-0 overflow-x-auto overflow-y-hidden scrollbar-hide"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           <div
-            className="relative h-full"
+            className="relative h-full flex"
             style={{
-              width: (() => {
-                const availableHeight = containerDimensions.height || 600;
-                const samplePosition = getImagePosition(0, availableHeight);
-                const actualRows = samplePosition.actualRows;
-                const width =
-                  Math.ceil(currentWorks.length / actualRows) * 200 * 3 + 800;
-                return `${width}px`;
-              })(),
-              minHeight: `100%`,
+              width: `${
+                Math.ceil(
+                  currentWorks.length / calculateRows(containerHeight)
+                ) *
+                  200 +
+                52
+              }px`,
+              minHeight: "100%",
+              paddingLeft: "32px",
+              paddingRight: "20px",
             }}
           >
-            {[...Array(3)].map((_, setIndex) =>
-              currentWorks.map((work, index) => {
-                const availableHeight = containerDimensions.height || 600;
-                const position = getImagePosition(index, availableHeight);
-                const size = getImageSize(index);
-                const offsetX =
-                  setIndex *
-                  Math.ceil(currentWorks.length / position.actualRows) *
-                  200;
+            {currentWorks.map((work, index) => {
+              const rows = calculateRows(containerHeight);
+              const row = index % rows;
+              const col = Math.floor(index / rows);
+              const x = col * 200 + 32; // Add 32px left padding
+              const y = row * 172 + 40;
 
-                return (
-                  <div
-                    key={`${setIndex}-${work.id}`}
-                    className="absolute cursor-pointer hover:scale-105 transition-transform duration-200"
-                    style={{
-                      left: `${position.x + offsetX}px`,
-                      top: `${position.y}px`,
-                      width: `${size.width}px`,
-                      height: `${size.height}px`,
+              return (
+                <div
+                  key={work.id}
+                  className="absolute cursor-pointer hover:scale-105 transition-transform duration-200"
+                  style={{
+                    left: `${x}px`,
+                    top: `${y}px`,
+                    width: "130px",
+                    height: "130px",
+                  }}
+                  onClick={() => onImageClick(index)}
+                >
+                  <img
+                    src={
+                      work.imageUrl ||
+                      "/placeholder.svg?height=400&width=400&query=vintage baseball photograph"
+                    }
+                    alt={work.title}
+                    className={`w-full h-full rounded-sm ${
+                      index === 3 ? "object-contain" : "object-cover"
+                    }`}
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.src = "/vintage-baseball-photograph.png";
                     }}
-                    onClick={() => onImageClick(index)}
-                  >
-                    <img
-                      src={
-                        work.imageUrl ||
-                        "/placeholder.svg?height=400&width=400&query=vintage baseball photograph"
-                      }
-                      alt={work.title}
-                      className={`w-full h-full rounded-sm ${
-                        index === 3 ? "object-contain" : "object-cover"
-                      }`}
-                      loading="lazy"
-                      onError={(e) => {
-                        e.currentTarget.src =
-                          "/vintage-baseball-photograph.png";
-                      }}
-                    />
-                    <div className="absolute top-1 left-1 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
-                      {index + 1}
-                    </div>
+                  />
+                  <div className="absolute top-1 left-1 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
+                    {index + 1}
                   </div>
-                );
-              })
-            )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-center px-4 py-2">
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-center px-4 py-2 z-10">
           <div className="text-content-title font-bold tracking-[0.02em]">
             {collections.find((c) => c.id === activeFilter)?.name ||
               "Collection"}
