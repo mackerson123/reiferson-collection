@@ -94,12 +94,24 @@ export default function ImageDetailView({
   const scrollTabs = (direction: "left" | "right") => {
     const container = tabsContainerRef.current;
     if (!container) return;
-    const scrollAmount =
-      direction === "left" ? -container.scrollWidth : container.scrollWidth;
-    container.scrollBy({
-      left: scrollAmount,
+
+    const maxScroll = container.scrollWidth - container.clientWidth;
+    const currentScroll = container.scrollLeft;
+
+    let targetScroll: number;
+    if (direction === "left") {
+      targetScroll = Math.max(0, currentScroll - container.clientWidth);
+    } else {
+      targetScroll = Math.min(maxScroll, currentScroll + container.clientWidth);
+    }
+
+    container.scrollTo({
+      left: targetScroll,
       behavior: "smooth",
     });
+    setTimeout(() => {
+      checkScrollability();
+    }, 300);
   };
 
   return (
