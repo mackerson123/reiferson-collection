@@ -14,7 +14,8 @@ const inter = Inter({
 const SITE_TITLE = "The Reiferson Collection";
 const SITE_DESCRIPTION =
   "Explore curated collections of vintage baseball photography and historical narratives through time";
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://your-domain.com";
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://reiferson-collection.vercel.app";
 const OG_IMAGE = "/vintage-baseball-photograph.png";
 
 export const metadata: Metadata = {
