@@ -1,4 +1,10 @@
-import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  integer,
+} from "drizzle-orm/pg-core";
 
 export const collections = pgTable("collections", {
   id: text("id").primaryKey(),
@@ -6,6 +12,7 @@ export const collections = pgTable("collections", {
   description: text("description"),
   curatorNote: text("curator_note"),
   isPublished: boolean("is_published").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -34,4 +41,3 @@ export type Collection = typeof collections.$inferSelect;
 export type NewCollection = typeof collections.$inferInsert;
 export type Work = typeof works.$inferSelect;
 export type NewWork = typeof works.$inferInsert;
-

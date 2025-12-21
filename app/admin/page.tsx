@@ -84,6 +84,13 @@ export default function AdminPage() {
     },
   });
 
+  const updateCollectionOrderMutation =
+    trpc.collections.updateOrder.useMutation({
+      onSuccess: () => {
+        utils.collections.list.invalidate();
+      },
+    });
+
   const collections = collectionsData?.collections || [];
   const works = worksData?.works || [];
   const loading = collectionsLoading || worksLoading;
@@ -194,6 +201,10 @@ export default function AdminPage() {
     await toggleWorkPublishMutation.mutateAsync({ id: workId });
   };
 
+  const handleCollectionOrderUpdate = async (collectionIds: string[]) => {
+    await updateCollectionOrderMutation.mutateAsync({ collectionIds });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -294,6 +305,7 @@ export default function AdminPage() {
             onUpdate={handleCollectionUpdate}
             onDelete={handleCollectionDelete}
             onTogglePublish={handleCollectionTogglePublish}
+            onUpdateOrder={handleCollectionOrderUpdate}
           />
         ) : (
           <WorkEditor

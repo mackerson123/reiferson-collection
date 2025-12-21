@@ -2,7 +2,7 @@ import { z } from "zod";
 import { router, publicProcedure, protectedProcedure } from "../server";
 import { db } from "../../db";
 import { collections, works } from "../../db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, asc } from "drizzle-orm";
 
 export const collectionsRouter = router({
   // Public query - only returns published collections with published works
@@ -10,7 +10,8 @@ export const collectionsRouter = router({
     const publishedCollections = await db
       .select()
       .from(collections)
-      .where(eq(collections.isPublished, true));
+      .where(eq(collections.isPublished, true))
+      .orderBy(asc(collections.sortOrder));
 
     const publishedWorks = await db
       .select()
@@ -32,7 +33,10 @@ export const collectionsRouter = router({
 
   // Admin query - returns all collections including drafts
   list: publicProcedure.query(async () => {
-    const allCollections = await db.select().from(collections);
+    const allCollections = await db
+      .select()
+      .from(collections)
+      .orderBy(asc(collections.sortOrder));
     const allWorks = await db.select().from(works);
 
     const collectionsWithWorks = allCollections.map((collection) => ({
@@ -176,6 +180,28 @@ export const collectionsRouter = router({
       if (!deleted) {
         throw new Error("Collection not found");
       }
+
+      return { success: true };
+    }),
+
+  updateOrder: protectedProcedure
+    .input(
+      z.object({
+        collectionIds: z.array(z.string()),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const updates = input.collectionIds.map((id, index) =>
+        db
+          .update(collections)
+          .set({
+            sortOrder: index,
+            updatedAt: new Date(),
+          })
+          .where(eq(collections.id, id))
+      );
+
+      await Promise.all(updates);
 
       return { success: true };
     }),

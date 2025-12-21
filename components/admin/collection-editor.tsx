@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, ArrowUpDown } from "lucide-react";
 import { Collection } from "../../lib/types";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Label } from "../ui/label";
 import { AdminItemCard } from "./admin-item-card";
+import { CollectionOrderEditor } from "./collection-order-editor";
 
 interface CollectionEditorProps {
   collections: Collection[];
@@ -12,6 +13,7 @@ interface CollectionEditorProps {
   onDelete: (collectionId: string) => void;
   onTogglePublish: (collectionId: string) => void;
   onCreate?: (collection: Omit<Collection, "works">) => void;
+  onUpdateOrder?: (collectionIds: string[]) => Promise<void>;
 }
 
 export function CollectionEditor({
@@ -20,10 +22,12 @@ export function CollectionEditor({
   onDelete,
   onTogglePublish,
   onCreate,
+  onUpdateOrder,
 }: CollectionEditorProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Collection>>({});
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showOrderEditor, setShowOrderEditor] = useState(false);
   const [filterStatus, setFilterStatus] = useState<
     "all" | "published" | "draft"
   >("all");
@@ -80,19 +84,47 @@ export function CollectionEditor({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleOrderSave = async (collectionIds: string[]) => {
+    if (onUpdateOrder) {
+      await onUpdateOrder(collectionIds);
+      setShowOrderEditor(false);
+    }
+  };
+
+  if (showOrderEditor && onUpdateOrder) {
+    return (
+      <CollectionOrderEditor
+        collections={collections}
+        onSaveOrder={handleOrderSave}
+        onCancel={() => setShowOrderEditor(false)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-4 items-center justify-between">
-        {onCreate && (
-          <button
-            onClick={startCreating}
-            disabled={showCreateForm}
-            className="bg-black text-white px-4 py-2 text-navigation tracking-[0.05em] font-medium rounded-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 admin-btn-primary"
-          >
-            <Plus className="w-4 h-4" />
-            New Collection
-          </button>
-        )}
+        <div className="flex gap-2">
+          {onCreate && (
+            <button
+              onClick={startCreating}
+              disabled={showCreateForm}
+              className="bg-black text-white px-4 py-2 text-navigation tracking-[0.05em] font-medium rounded-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 admin-btn-primary"
+            >
+              <Plus className="w-4 h-4" />
+              New Collection
+            </button>
+          )}
+          {onUpdateOrder && (
+            <button
+              onClick={() => setShowOrderEditor(true)}
+              className="border border-black/10 px-4 py-2 text-navigation tracking-[0.05em] font-medium rounded-sm flex items-center gap-2 admin-btn-secondary hover:bg-gray-50"
+            >
+              <ArrowUpDown className="w-4 h-4" />
+              Reorder
+            </button>
+          )}
+        </div>
 
         <div className="flex gap-2">
           {(["all", "published", "draft"] as const).map((status) => (

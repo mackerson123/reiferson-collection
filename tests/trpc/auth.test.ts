@@ -4,7 +4,12 @@ import { appRouter } from "../../lib/trpc/router";
 vi.mock("../../lib/db", () => ({
   db: {
     select: vi.fn().mockReturnValue({
-      from: vi.fn().mockResolvedValue([]),
+      from: vi.fn().mockReturnValue({
+        orderBy: vi.fn().mockResolvedValue([]),
+        where: vi.fn().mockReturnValue({
+          orderBy: vi.fn().mockResolvedValue([]),
+        }),
+      }),
     }),
     insert: vi.fn().mockReturnValue({
       values: vi.fn().mockReturnValue({
@@ -94,7 +99,9 @@ describe("Authentication Middleware", () => {
       it(`${name} should succeed with correct password`, async () => {
         const correctPassword = process.env.ADMIN_PASSWORD;
         if (!correctPassword) {
-          console.warn(`Skipping ${name} auth success test - ADMIN_PASSWORD not set`);
+          console.warn(
+            `Skipping ${name} auth success test - ADMIN_PASSWORD not set`
+          );
           return;
         }
 
@@ -107,4 +114,3 @@ describe("Authentication Middleware", () => {
     });
   });
 });
-

@@ -1,51 +1,80 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("../../lib/db", () => ({
-  db: {
-    select: vi.fn().mockReturnValue({
-      from: vi.fn().mockResolvedValue([
-        {
-          id: "test-collection-1",
-          name: "Test Collection",
-          description: "A test collection",
-          curatorNote: "Curator notes here",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      ]),
-    }),
-    insert: vi.fn().mockReturnValue({
-      values: vi.fn().mockReturnValue({
-        returning: vi.fn().mockResolvedValue([
-          {
-            id: "test-collection-1",
-            name: "Test Collection",
-            description: "A test collection",
-            curatorNote: "Curator notes here",
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        ]),
-      }),
-    }),
-    update: vi.fn().mockReturnValue({
-      set: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({
-          returning: vi.fn().mockResolvedValue([
-            {
-              id: "test-collection-1",
-              name: "Updated Name",
-              description: "A test collection",
-              curatorNote: "Curator notes here",
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-          ]),
+vi.mock("../../lib/db", () => {
+  const mockCollections = [
+    {
+      id: "test-collection-1",
+      name: "Test Collection",
+      description: "A test collection",
+      curatorNote: "Curator notes here",
+      sortOrder: 0,
+      isPublished: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ];
+
+  const mockWorks = [
+    {
+      id: "test-work-1",
+      title: "Test Work",
+      imageUrl: "/test.jpg",
+      collectionId: "test-collection-1",
+      isPublished: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ];
+
+  let callIndex = 0;
+
+  return {
+    db: {
+      select: vi.fn(() => ({
+        from: vi.fn(() => {
+          const isCollectionsQuery = callIndex % 2 === 0;
+          callIndex++;
+
+          const result = {
+            orderBy: vi.fn(() =>
+              Promise.resolve(isCollectionsQuery ? mockCollections : mockWorks)
+            ),
+            where: vi.fn(() => ({
+              orderBy: vi.fn(() =>
+                Promise.resolve(
+                  isCollectionsQuery ? mockCollections : mockWorks
+                )
+              ),
+            })),
+            then: (resolve: any) =>
+              resolve(isCollectionsQuery ? mockCollections : mockWorks),
+          };
+
+          return result;
         }),
-      }),
-    }),
-  },
-}));
+      })),
+      insert: vi.fn(() => ({
+        values: vi.fn(() => ({
+          returning: vi.fn(() => Promise.resolve(mockCollections)),
+        })),
+      })),
+      update: vi.fn(() => ({
+        set: vi.fn(() => ({
+          where: vi.fn(() => ({
+            returning: vi.fn(() =>
+              Promise.resolve([
+                {
+                  ...mockCollections[0],
+                  name: "Updated Name",
+                },
+              ])
+            ),
+          })),
+        })),
+      })),
+    },
+  };
+});
 
 import { appRouter } from "../../lib/trpc/router";
 
@@ -77,7 +106,9 @@ describe("Collections Router", () => {
     });
 
     it("should reject wrong password", async () => {
-      const caller = appRouter.createCaller({ adminPassword: "wrong-password" });
+      const caller = appRouter.createCaller({
+        adminPassword: "wrong-password",
+      });
 
       await expect(
         caller.collections.update({
