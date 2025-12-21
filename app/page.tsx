@@ -51,7 +51,11 @@ export default function HomePage() {
   };
 
   return (
-    <div className="h-dvh bg-[#F1EFE7] text-black font-sans flex flex-col overflow-hidden">
+    <div
+      className={`h-dvh bg-[#F1EFE7] text-black font-sans flex flex-col ${
+        currentView === "work" ? "overflow-hidden" : ""
+      }`}
+    >
       {/* Navigation */}
       <nav className="flex-shrink-0 bg-[#F1EFE7] flex justify-between items-center px-4 py-4 md:px-8">
         <Link href="/">
