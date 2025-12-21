@@ -3,6 +3,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Upload, X } from "lucide-react";
+import { addError } from "../error-modal";
 
 interface ImageUploadProps {
   value: string;
@@ -43,11 +44,13 @@ export function ImageUpload({
         onChange(imageUrl);
         setPreviewUrl(imageUrl);
       } else {
-        alert("Failed to upload image");
+        const errorText = await response.text();
+        addError(
+          new Error(`Failed to upload image: ${response.status} ${errorText}`)
+        );
       }
     } catch (error) {
-      console.error("Upload error:", error);
-      alert("Failed to upload image");
+      addError(error);
     } finally {
       setUploading(false);
     }

@@ -98,141 +98,100 @@ export default function AdminPage() {
   const handleCollectionCreate = async (
     newCollection: Omit<Collection, "works">
   ) => {
-    try {
-      await createCollectionMutation.mutateAsync({
-        id: newCollection.id,
-        name: newCollection.name,
-        description: newCollection.description,
-        curatorNote: newCollection.curatorNote,
-        isPublished: newCollection.isPublished,
-      });
-    } catch (error) {
-      console.error("Error creating collection:", error);
-    }
+    await createCollectionMutation.mutateAsync({
+      id: newCollection.id,
+      name: newCollection.name,
+      description: newCollection.description,
+      curatorNote: newCollection.curatorNote,
+      isPublished: newCollection.isPublished,
+    });
   };
 
   const handleCollectionUpdate = async (updatedCollection: Collection) => {
-    try {
-      await updateCollectionMutation.mutateAsync({
-        id: updatedCollection.id,
-        name: updatedCollection.name,
-        description: updatedCollection.description,
-        curatorNote: updatedCollection.curatorNote,
-        isPublished: updatedCollection.isPublished,
-      });
-    } catch (error) {
-      console.error("Error updating collection:", error);
-    }
+    await updateCollectionMutation.mutateAsync({
+      id: updatedCollection.id,
+      name: updatedCollection.name,
+      description: updatedCollection.description,
+      curatorNote: updatedCollection.curatorNote,
+      isPublished: updatedCollection.isPublished,
+    });
   };
 
   const handleCollectionDelete = async (collectionId: string) => {
-    try {
-      await deleteCollectionMutation.mutateAsync({ id: collectionId });
-    } catch (error) {
-      console.error("Error deleting collection:", error);
-      alert("Failed to delete collection. Please try again.");
-    }
+    await deleteCollectionMutation.mutateAsync({ id: collectionId });
   };
 
   const handleWorkUpdate = async (updatedWork: Work) => {
-    try {
-      await updateWorkMutation.mutateAsync({
-        id: updatedWork.id,
-        title: updatedWork.title,
-        artist: updatedWork.artist,
-        date: updatedWork.date,
-        medium: updatedWork.medium,
-        dimensions: updatedWork.dimensions,
-        description: updatedWork.description,
-        narrative: updatedWork.narrative,
-        provenance: updatedWork.provenance,
-        exhibition: updatedWork.exhibition,
-        relatedObjects: updatedWork.relatedObjects,
-        imageUrl: updatedWork.imageUrl,
-        thumbnailUrl: updatedWork.thumbnailUrl,
-        collectionId: updatedWork.collectionId,
-        isPublished: updatedWork.isPublished,
-      });
-    } catch (error) {
-      console.error("Error updating work:", error);
-    }
+    await updateWorkMutation.mutateAsync({
+      id: updatedWork.id,
+      title: updatedWork.title,
+      artist: updatedWork.artist,
+      date: updatedWork.date,
+      medium: updatedWork.medium,
+      dimensions: updatedWork.dimensions,
+      description: updatedWork.description,
+      narrative: updatedWork.narrative,
+      provenance: updatedWork.provenance,
+      exhibition: updatedWork.exhibition,
+      relatedObjects: updatedWork.relatedObjects,
+      imageUrl: updatedWork.imageUrl,
+      thumbnailUrl: updatedWork.thumbnailUrl,
+      collectionId: updatedWork.collectionId,
+      isPublished: updatedWork.isPublished,
+    });
   };
 
   const handleWorkCreate = async (newWork: Work) => {
     if (!newWork.collectionId) {
-      console.error("Cannot create work without a collection");
       return;
     }
-    try {
-      await createWorkMutation.mutateAsync({
-        id: newWork.id,
-        title: newWork.title,
-        artist: newWork.artist,
-        date: newWork.date,
-        medium: newWork.medium,
-        dimensions: newWork.dimensions,
-        description: newWork.description,
-        narrative: newWork.narrative,
-        provenance: newWork.provenance,
-        exhibition: newWork.exhibition,
-        relatedObjects: newWork.relatedObjects,
-        imageUrl: newWork.imageUrl,
-        thumbnailUrl: newWork.thumbnailUrl,
-        collectionId: newWork.collectionId,
-        isPublished: newWork.isPublished,
-      });
-    } catch (error) {
-      console.error("Error creating work:", error);
-    }
+    await createWorkMutation.mutateAsync({
+      id: newWork.id,
+      title: newWork.title,
+      artist: newWork.artist,
+      date: newWork.date,
+      medium: newWork.medium,
+      dimensions: newWork.dimensions,
+      description: newWork.description,
+      narrative: newWork.narrative,
+      provenance: newWork.provenance,
+      exhibition: newWork.exhibition,
+      relatedObjects: newWork.relatedObjects,
+      imageUrl: newWork.imageUrl,
+      thumbnailUrl: newWork.thumbnailUrl,
+      collectionId: newWork.collectionId,
+      isPublished: newWork.isPublished,
+    });
   };
 
   const handleWorkDelete = async (workId: string) => {
-    try {
-      await deleteWorkMutation.mutateAsync({ id: workId });
-    } catch (error) {
-      console.error("Error deleting work:", error);
-    }
+    await deleteWorkMutation.mutateAsync({ id: workId });
   };
 
   const handleCollectionTogglePublish = async (collectionId: string) => {
-    // Find the collection to check its current status
     const collection = collections.find((c) => c.id === collectionId);
 
-    // If it's currently a draft (not published) and has works, show the dialog
     if (collection && !collection.isPublished && collection.works.length > 0) {
       setCollectionToPublish(collectionId);
       setPublishDialogOpen(true);
     } else {
-      // Otherwise, just toggle normally
-      try {
-        await toggleCollectionPublishMutation.mutateAsync({ id: collectionId });
-      } catch (error) {
-        console.error("Error toggling collection publish status:", error);
-      }
+      await toggleCollectionPublishMutation.mutateAsync({ id: collectionId });
     }
   };
 
   const handleConfirmPublish = async (publishWorks: boolean) => {
     if (!collectionToPublish) return;
 
-    try {
-      await toggleCollectionPublishMutation.mutateAsync({
-        id: collectionToPublish,
-        publishWorks,
-      });
-      setPublishDialogOpen(false);
-      setCollectionToPublish(null);
-    } catch (error) {
-      console.error("Error publishing collection:", error);
-    }
+    await toggleCollectionPublishMutation.mutateAsync({
+      id: collectionToPublish,
+      publishWorks,
+    });
+    setPublishDialogOpen(false);
+    setCollectionToPublish(null);
   };
 
   const handleWorkTogglePublish = async (workId: string) => {
-    try {
-      await toggleWorkPublishMutation.mutateAsync({ id: workId });
-    } catch (error) {
-      console.error("Error toggling work publish status:", error);
-    }
+    await toggleWorkPublishMutation.mutateAsync({ id: workId });
   };
 
   if (loading) {
