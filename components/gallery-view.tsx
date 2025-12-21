@@ -286,7 +286,7 @@ export default function GalleryView({
       <main
         ref={containerRef}
         className="flex-1 relative"
-        style={{ minHeight: "400px" }}
+        style={{ minHeight: isMobile ? "300px" : "400px" }}
       >
         <div
           ref={scrollContainerRef}
