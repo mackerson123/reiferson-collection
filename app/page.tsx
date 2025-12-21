@@ -87,14 +87,19 @@ export default function HomePage() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-[60] bg-[#F1EFE7] flex flex-col items-center justify-center">
-          <button
-            onClick={() => setMobileMenuOpen(false)}
-            className="absolute top-4 right-4 text-black text-2xl z-10 gallery-link"
-          >
-            ×
-          </button>
-          <div className="space-y-6 text-center">
+        <div className="fixed inset-0 z-[60] bg-[#F1EFE7] flex flex-col">
+          <div className="flex-shrink-0 flex justify-between items-center p-4">
+            <span className="text-[18px] font-semibold tracking-[0.05em]">
+              The Reiferson Collection
+            </span>
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-nav tracking-[0.05em] font-medium gallery-link"
+            >
+              Close
+            </button>
+          </div>
+          <div className="flex-1 flex flex-col items-center justify-center gap-6 text-center">
             <button
               onClick={() => {
                 setCurrentView("work");
