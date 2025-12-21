@@ -1,26 +1,32 @@
 export interface Work {
   id: string;
   title: string;
-  artist?: string;
-  date?: string;
-  medium?: string;
-  dimensions?: string;
-  description?: string;
-  narrative?: string;
-  provenance?: string;
-  exhibition?: string;
-  relatedObjects?: string[];
+  artist?: string | null;
+  date?: string | null;
+  medium?: string | null;
+  dimensions?: string | null;
+  description?: string | null;
+  narrative?: string | null;
+  provenance?: string | null;
+  exhibition?: string | null;
+  relatedObjects?: string[] | null;
   imageUrl: string;
-  thumbnailUrl?: string;
-  collectionId: string;
+  thumbnailUrl?: string | null;
+  collectionId: string | null;
+  isPublished?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface Collection {
   id: string;
   name: string;
-  description?: string;
-  curatorNote?: string;
+  description?: string | null;
+  curatorNote?: string | null;
   works: Work[];
+  isPublished?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface CollectionData {

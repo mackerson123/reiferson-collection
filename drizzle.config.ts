@@ -1,7 +1,8 @@
 import { defineConfig } from "drizzle-kit";
 import { config } from "dotenv";
+import { join } from "path";
 
-config({ path: ".env.local" });
+config({ path: join(process.cwd(), ".env.local") });
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL environment variable is not set");

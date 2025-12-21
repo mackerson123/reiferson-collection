@@ -1,10 +1,11 @@
-import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
 
 export const collections = pgTable("collections", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
   curatorNote: text("curator_note"),
+  isPublished: boolean("is_published").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -24,6 +25,7 @@ export const works = pgTable("works", {
   imageUrl: text("image_url").notNull(),
   thumbnailUrl: text("thumbnail_url"),
   collectionId: text("collection_id").references(() => collections.id),
+  isPublished: boolean("is_published").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

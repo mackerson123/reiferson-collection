@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { Work, Collection } from "../lib/types";
@@ -14,10 +12,10 @@ export default function GalleryView({
   onImageClick,
   onWorksChange,
 }: GalleryViewProps) {
-  const { data: collectionsData, isLoading } = trpc.collections.list.useQuery();
+  const { data: collectionsData, isLoading } =
+    trpc.collections.listPublished.useQuery();
   const [activeFilter, setActiveFilter] = useState<string>("");
   const [currentWorks, setCurrentWorks] = useState<Work[]>([]);
-  const [currentCollection, setCurrentCollection] = useState(0);
   const [containerHeight, setContainerHeight] = useState(600);
   const [isMobile, setIsMobile] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -82,8 +80,10 @@ export default function GalleryView({
   );
 
   // Legacy helpers for backward compatibility
-  const calculateRows = (height: number) => calculateOptimalLayout(height, false).rows;
-  const calculateMobileRows = (height: number) => calculateOptimalLayout(height, true).rows;
+  const calculateRows = (height: number) =>
+    calculateOptimalLayout(height, false).rows;
+  const calculateMobileRows = (height: number) =>
+    calculateOptimalLayout(height, true).rows;
 
   useEffect(() => {
     if (collections.length > 0) {
@@ -95,7 +95,6 @@ export default function GalleryView({
       // Only set initial active filter once
       if (!hasInitializedRef.current) {
         setActiveFilter(collections[0]?.id || "");
-        setCurrentCollection(0);
         hasInitializedRef.current = true;
       }
     }
@@ -153,10 +152,16 @@ export default function GalleryView({
 
     const visibleCollectionId = collections[collectionIndex]?.id;
     if (visibleCollectionId && visibleCollectionId !== activeFilter) {
-      setCurrentCollection(collectionIndex);
       setActiveFilter(visibleCollectionId);
     }
-  }, [containerHeight, isMobile, collections, currentWorks, activeFilter, layout]);
+  }, [
+    containerHeight,
+    isMobile,
+    collections,
+    currentWorks,
+    activeFilter,
+    layout,
+  ]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -213,12 +218,6 @@ export default function GalleryView({
     const targetX = col * layout.colSpacing;
     const leftPadding = isMobile ? 16 : 32;
 
-    const clickedIndex = Math.max(
-      0,
-      collections.findIndex((c) => c.id === filter)
-    );
-    setCurrentCollection(clickedIndex);
-
     container.scrollTo({
       left: targetX - leftPadding,
       behavior: "smooth",
@@ -253,7 +252,7 @@ export default function GalleryView({
                 <button
                   key={collection.id}
                   onClick={() => handleFilterChange(collection.id)}
-                  className={`relative py-2 px-1 text-sm font-medium tracking-[0.05em] transition-all duration-200 whitespace-nowrap cursor-pointer ${
+                  className={`relative py-2 px-1 text-sm font-medium tracking-[0.05em] whitespace-nowrap gallery-tab ${
                     activeFilter === collection.id
                       ? "text-black"
                       : "text-black/50 hover:text-black/75"
@@ -276,7 +275,7 @@ export default function GalleryView({
               <button
                 key={collection.id}
                 onClick={() => handleFilterChange(collection.id)}
-                className={`py-4 text-utility tracking-[0.05em] font-medium whitespace-nowrap relative transition-colors cursor-pointer ${
+                className={`py-4 text-utility tracking-[0.05em] font-medium whitespace-nowrap relative gallery-tab ${
                   activeFilter === collection.id
                     ? "text-black"
                     : "text-black/60 hover:text-black/80"
@@ -306,7 +305,8 @@ export default function GalleryView({
             className="relative h-full flex"
             style={{
               width: `${
-                Math.ceil(currentWorks.length / layout.rows) * layout.colSpacing +
+                Math.ceil(currentWorks.length / layout.rows) *
+                  layout.colSpacing +
                 (isMobile ? 36 : 52)
               }px`,
               minHeight: "100%",
@@ -324,7 +324,7 @@ export default function GalleryView({
               return (
                 <div
                   key={work.id}
-                  className="absolute cursor-pointer hover:scale-105 active:scale-95 transition-transform duration-200"
+                  className="absolute gallery-image"
                   style={{
                     left: `${x}px`,
                     top: `${y}px`,
@@ -357,7 +357,6 @@ export default function GalleryView({
             })}
           </div>
         </div>
-
       </main>
 
       {/* Collection info footer - outside scroll area */}
@@ -366,7 +365,8 @@ export default function GalleryView({
           {collections.find((c) => c.id === activeFilter)?.name || "Collection"}
           <span className="text-sm md:text-lg font-normal">
             {" "}
-            ({collections.find((c) => c.id === activeFilter)?.works.length || 0})
+            ({collections.find((c) => c.id === activeFilter)?.works.length || 0}
+            )
           </span>
         </div>
         <div className="text-xs md:text-utility opacity-60 tracking-[0.05em]">
@@ -376,4 +376,3 @@ export default function GalleryView({
     </div>
   );
 }
-

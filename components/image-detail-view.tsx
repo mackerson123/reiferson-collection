@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import Image from "next/image";
 import { Work } from "../lib/types";
@@ -35,7 +33,7 @@ export default function ImageDetailView({
         <div className="flex justify-between items-center px-4 md:px-8 py-3 md:py-4">
           <button
             onClick={onBack}
-            className="text-xs md:text-utility tracking-[0.05em] font-medium hover:opacity-60 transition-opacity cursor-pointer"
+            className="text-xs md:text-utility tracking-[0.05em] font-medium gallery-link"
           >
             ← <span className="hidden sm:inline">Back to gallery</span>
             <span className="sm:hidden">Back</span>
@@ -48,14 +46,14 @@ export default function ImageDetailView({
             <div className="flex gap-1 md:gap-3">
               <button
                 onClick={onPrevious}
-                className="text-xs md:text-utility tracking-[0.05em] font-medium hover:opacity-60 transition-opacity px-2 md:px-3 py-1 border border-black/20 rounded hover:border-black/40 cursor-pointer"
+                className="text-xs md:text-utility tracking-[0.05em] font-medium px-2 md:px-3 py-1 border border-black/20 rounded gallery-nav-btn"
               >
                 <span className="hidden md:inline">← Previous</span>
                 <span className="md:hidden">←</span>
               </button>
               <button
                 onClick={onNext}
-                className="text-xs md:text-utility tracking-[0.05em] font-medium hover:opacity-60 transition-opacity px-2 md:px-3 py-1 border border-black/20 rounded hover:border-black/40 cursor-pointer"
+                className="text-xs md:text-utility tracking-[0.05em] font-medium px-2 md:px-3 py-1 border border-black/20 rounded gallery-nav-btn"
               >
                 <span className="hidden md:inline">Next →</span>
                 <span className="md:hidden">→</span>
@@ -110,7 +108,7 @@ export default function ImageDetailView({
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`py-3 md:py-4 text-xs md:text-sm font-medium tracking-[0.05em] capitalize transition-colors whitespace-nowrap relative cursor-pointer ${
+                    className={`py-3 md:py-4 text-xs md:text-sm font-medium tracking-[0.05em] capitalize whitespace-nowrap relative gallery-tab ${
                       activeTab === tab
                         ? "text-black"
                         : "text-black/60 hover:text-black/80"

@@ -79,7 +79,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
                 <Button
                   type="submit"
-                  className="w-full bg-black text-white hover:opacity-80 transition-opacity tracking-[0.05em] font-medium"
+                  className="w-full bg-black text-white tracking-[0.05em] font-medium admin-btn-primary"
                 >
                   Login
                 </Button>
@@ -105,13 +105,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <div className="flex gap-6 items-center">
                 <Link
                   href="/"
-                  className="text-navigation tracking-[0.05em] font-medium hover:opacity-60 opacity-60 cursor-pointer"
+                  className="text-navigation tracking-[0.05em] font-medium opacity-60 admin-link"
                 >
                   View Site
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="text-navigation tracking-[0.05em] font-medium hover:opacity-60 opacity-60 cursor-pointer"
+                  className="text-navigation tracking-[0.05em] font-medium opacity-60 admin-link"
                 >
                   Logout
                 </button>

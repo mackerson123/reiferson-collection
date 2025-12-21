@@ -1,8 +1,5 @@
-"use client";
-
 import { useState } from "react";
 import { Work, Collection } from "../../lib/types";
-import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import {
@@ -13,7 +10,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Label } from "../ui/label";
-import { Trash2, Plus, Edit3 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { ImageUpload } from "./image-upload";
 import { AdminItemCard } from "./admin-item-card";
 
@@ -23,6 +20,7 @@ interface WorkEditorProps {
   onUpdate: (work: Work) => void;
   onCreate: (work: Work) => void;
   onDelete: (workId: string) => void;
+  onTogglePublish: (workId: string) => void;
 }
 
 export function WorkEditor({
@@ -31,11 +29,15 @@ export function WorkEditor({
   onUpdate,
   onCreate,
   onDelete,
+  onTogglePublish,
 }: WorkEditorProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formData, setFormData] = useState<Partial<Work>>({});
   const [filterCollection, setFilterCollection] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<
+    "all" | "published" | "draft"
+  >("all");
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredWorks = works.filter((work) => {
@@ -45,7 +47,11 @@ export function WorkEditor({
       work.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       work.artist?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       work.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCollection && matchesSearch;
+    const matchesStatus =
+      filterStatus === "all" ||
+      (filterStatus === "published" && work.isPublished !== false) ||
+      (filterStatus === "draft" && work.isPublished === false);
+    return matchesCollection && matchesSearch && matchesStatus;
   });
 
   const startEditing = (work: Work) => {
@@ -70,6 +76,7 @@ export function WorkEditor({
       exhibition: "",
       imageUrl: "",
       collectionId: collections[0]?.id || "",
+      isPublished: false,
     });
   };
 
@@ -90,7 +97,10 @@ export function WorkEditor({
     }
   };
 
-  const updateField = (field: keyof Work, value: string | string[]) => {
+  const updateField = (
+    field: keyof Work,
+    value: string | string[] | boolean
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -110,36 +120,61 @@ export function WorkEditor({
         <button
           onClick={startCreating}
           disabled={showCreateForm}
-          className="bg-black text-white px-4 py-2 text-navigation tracking-[0.05em] font-medium hover:opacity-80 transition-opacity rounded-sm disabled:opacity-40 flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+          className="bg-black text-white px-4 py-2 text-navigation tracking-[0.05em] font-medium rounded-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 admin-btn-primary"
         >
           <Plus className="w-4 h-4" />
           Add New Work
         </button>
       </div>
 
-      <div className="bg-white border border-black/10 rounded-sm p-4 flex gap-4 items-center">
-        <div className="flex-1">
-          <Input
-            placeholder="Search works by title, artist, or description..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-white border-black/10 text-navigation tracking-[0.05em]"
-          />
+      <div className="bg-white border border-black/10 rounded-sm p-4 space-y-4">
+        <div className="flex flex-wrap gap-4 items-center">
+          <div className="flex-1 min-w-[200px]">
+            <Input
+              placeholder="Search works by title, artist, or description..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="bg-white border-black/10 text-navigation tracking-[0.05em]"
+            />
+          </div>
+          <div className="min-w-[180px]">
+            <Select
+              value={filterCollection}
+              onValueChange={setFilterCollection}
+            >
+              <SelectTrigger className="bg-white border-black/10 text-navigation tracking-[0.05em]">
+                <SelectValue placeholder="Filter by collection" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Collections</SelectItem>
+                {collections.map((collection) => (
+                  <SelectItem key={collection.id} value={collection.id}>
+                    {collection.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="min-w-[200px]">
-          <Select value={filterCollection} onValueChange={setFilterCollection}>
-            <SelectTrigger className="bg-white border-black/10 text-navigation tracking-[0.05em]">
-              <SelectValue placeholder="Filter by collection" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Collections</SelectItem>
-              {collections.map((collection) => (
-                <SelectItem key={collection.id} value={collection.id}>
-                  {collection.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+
+        <div className="flex gap-2">
+          {(["all", "published", "draft"] as const).map((status) => (
+            <button
+              key={status}
+              onClick={() => setFilterStatus(status)}
+              className={`px-3 py-1.5 text-sm tracking-[0.05em] rounded-sm admin-filter-pill ${
+                filterStatus === status
+                  ? "bg-black text-white"
+                  : "bg-white border border-black/10 text-black/60 hover:text-black"
+              }`}
+            >
+              {status === "all"
+                ? "All"
+                : status === "published"
+                ? "Published"
+                : "Drafts"}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -169,11 +204,13 @@ export function WorkEditor({
             key={work.id}
             title={work.title}
             subtitle={`${work.artist || "Unknown Artist"} • ${getCollectionName(
-              work.collectionId
+              work.collectionId ?? ""
             )}`}
             isEditing={editingId === work.id}
+            isPublished={work.isPublished !== false}
             onEdit={() => startEditing(work)}
             onDelete={() => handleDelete(work.id)}
+            onTogglePublish={() => onTogglePublish(work.id)}
             editForm={
               <WorkForm
                 formData={formData}
@@ -249,7 +286,10 @@ export function WorkEditor({
 interface WorkFormProps {
   formData: Partial<Work>;
   collections: Collection[];
-  onUpdateField: (field: keyof Work, value: string | string[]) => void;
+  onUpdateField: (
+    field: keyof Work,
+    value: string | string[] | boolean
+  ) => void;
   onSave: () => void;
   onCancel: () => void;
   isCreate: boolean;
@@ -409,16 +449,34 @@ function WorkForm({
         </div>
       </div>
 
+      {isCreate && (
+        <div className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            id="publish-work-immediately"
+            checked={formData.isPublished === true}
+            onChange={(e) => onUpdateField("isPublished", e.target.checked)}
+            className="w-4 h-4 cursor-pointer"
+          />
+          <Label
+            htmlFor="publish-work-immediately"
+            className="text-navigation tracking-[0.05em] cursor-pointer"
+          >
+            Publish immediately
+          </Label>
+        </div>
+      )}
+
       <div className="flex gap-2 pt-4">
         <button
           onClick={onSave}
-          className="bg-black text-white px-4 py-2 text-navigation tracking-[0.05em] font-medium hover:opacity-80 transition-opacity rounded-sm cursor-pointer"
+          className="bg-black text-white px-4 py-2 text-navigation tracking-[0.05em] font-medium rounded-sm admin-btn-primary"
         >
           {isCreate ? "Create Work" : "Save Changes"}
         </button>
         <button
           onClick={onCancel}
-          className="border border-black/10 px-4 py-2 text-navigation tracking-[0.05em] font-medium hover:opacity-60 transition-opacity rounded-sm cursor-pointer"
+          className="border border-black/10 px-4 py-2 text-navigation tracking-[0.05em] font-medium rounded-sm admin-btn-secondary"
         >
           Cancel
         </button>

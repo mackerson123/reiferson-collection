@@ -1,9 +1,7 @@
-import { notFound } from "next/navigation"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { ArrowLeft } from "lucide-react"
-import Navigation from "@/components/navigation"
+import { notFound } from "next/navigation";
+import Image from "next/image";
+import { Card, CardContent } from "@/components/ui/card";
+import Navigation from "@/components/navigation";
 
 // Collection data - in a real app, this would come from a CMS or database
 const collections = {
@@ -139,19 +137,19 @@ const collections = {
       },
     ],
   },
-}
+};
 
 interface CollectionPageProps {
   params: {
-    slug: string
-  }
+    slug: string;
+  };
 }
 
 export default function CollectionPage({ params }: CollectionPageProps) {
-  const collection = collections[params.slug as keyof typeof collections]
+  const collection = collections[params.slug as keyof typeof collections];
 
   if (!collection) {
-    notFound()
+    notFound();
   }
 
   return (
@@ -174,9 +172,15 @@ export default function CollectionPage({ params }: CollectionPageProps) {
             <div className="absolute inset-0 bg-black/40"></div>
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center text-white max-w-4xl px-6">
-                <h1 className="text-4xl lg:text-6xl font-bold mb-4">{collection.title}</h1>
-                <h2 className="text-xl lg:text-2xl font-medium mb-6">{collection.subtitle}</h2>
-                <p className="text-lg lg:text-xl leading-relaxed max-w-3xl mx-auto">{collection.description}</p>
+                <h1 className="text-4xl lg:text-6xl font-bold mb-4">
+                  {collection.title}
+                </h1>
+                <h2 className="text-xl lg:text-2xl font-medium mb-6">
+                  {collection.subtitle}
+                </h2>
+                <p className="text-lg lg:text-xl leading-relaxed max-w-3xl mx-auto">
+                  {collection.description}
+                </p>
               </div>
             </div>
           </div>
@@ -186,12 +190,13 @@ export default function CollectionPage({ params }: CollectionPageProps) {
       {/* Back Navigation */}
       <section className="py-8 px-6">
         <div className="max-w-7xl mx-auto">
-          <Button variant="outline" asChild className="mb-8 bg-transparent">
-            <a href="/" className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Collections
-            </a>
-          </Button>
+          <a
+            href="/"
+            className="text-xs md:text-utility tracking-[0.05em] font-medium gallery-link mb-8 inline-block"
+          >
+            ← <span className="hidden sm:inline">Back to collection</span>
+            <span className="sm:hidden">Back</span>
+          </a>
         </div>
       </section>
 
@@ -199,9 +204,16 @@ export default function CollectionPage({ params }: CollectionPageProps) {
       <section className="pb-24 px-6">
         <div className="max-w-7xl mx-auto space-y-24">
           {collection.photographs.map((photo, index) => (
-            <div key={photo.id} className="grid grid-cols-1 lg:grid-cols-8 gap-12 items-center">
+            <div
+              key={photo.id}
+              className="grid grid-cols-1 lg:grid-cols-8 gap-12 items-center"
+            >
               {/* Image Section - 5 columns (larger portion following Fibonacci) */}
-              <div className={`lg:col-span-5 ${index % 2 === 1 ? "lg:order-2" : ""}`}>
+              <div
+                className={`lg:col-span-5 ${
+                  index % 2 === 1 ? "lg:order-2" : ""
+                }`}
+              >
                 <Card className="overflow-hidden shadow-lg">
                   <CardContent className="p-0">
                     <div className="aspect-[1.618/1] relative">
@@ -219,13 +231,23 @@ export default function CollectionPage({ params }: CollectionPageProps) {
               </div>
 
               {/* Text Section - 3 columns (smaller portion following Fibonacci) */}
-              <div className={`lg:col-span-3 ${index % 2 === 1 ? "lg:order-1" : ""}`}>
+              <div
+                className={`lg:col-span-3 ${
+                  index % 2 === 1 ? "lg:order-1" : ""
+                }`}
+              >
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-3xl font-bold text-foreground mb-2">{photo.title}</h3>
-                    <p className="text-lg text-primary font-medium">{photo.year}</p>
+                    <h3 className="text-3xl font-bold text-foreground mb-2">
+                      {photo.title}
+                    </h3>
+                    <p className="text-lg text-primary font-medium">
+                      {photo.year}
+                    </p>
                   </div>
-                  <p className="text-lg text-foreground/80 leading-relaxed">{photo.story}</p>
+                  <p className="text-lg text-foreground/80 leading-relaxed">
+                    {photo.story}
+                  </p>
                 </div>
               </div>
             </div>
@@ -236,13 +258,18 @@ export default function CollectionPage({ params }: CollectionPageProps) {
       {/* Navigation to Other Collections */}
       <section className="py-16 px-6 bg-card">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-foreground mb-12">Explore More Collections</h2>
+          <h2 className="text-3xl font-bold text-center text-foreground mb-12">
+            Explore More Collections
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {Object.entries(collections)
               .filter(([slug]) => slug !== params.slug)
               .slice(0, 3)
               .map(([slug, otherCollection]) => (
-                <Card key={slug} className="group cursor-pointer overflow-hidden hover:shadow-lg transition-shadow">
+                <Card
+                  key={slug}
+                  className="group cursor-pointer overflow-hidden hover:shadow-lg transition-shadow"
+                >
                   <a href={`/collections/${slug}`}>
                     <CardContent className="p-0">
                       <div className="aspect-[1.618/1] relative overflow-hidden">
@@ -256,8 +283,12 @@ export default function CollectionPage({ params }: CollectionPageProps) {
                         />
                         <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors"></div>
                         <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                          <h3 className="text-xl font-bold mb-1">{otherCollection.title}</h3>
-                          <p className="text-white/90 text-sm">{otherCollection.subtitle}</p>
+                          <h3 className="text-xl font-bold mb-1">
+                            {otherCollection.title}
+                          </h3>
+                          <p className="text-white/90 text-sm">
+                            {otherCollection.subtitle}
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -268,5 +299,5 @@ export default function CollectionPage({ params }: CollectionPageProps) {
         </div>
       </section>
     </div>
-  )
+  );
 }

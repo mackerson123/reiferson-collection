@@ -70,7 +70,7 @@ export default function HomePage() {
       <nav className="sticky top-0 z-50 bg-[#F1EFE7] flex justify-between items-center p-6 md:p-8">
         <Link href="/">
           <h1
-            className="text-site-name font-semibold tracking-[0.05em] hover:opacity-80 transition-opacity cursor-pointer"
+            className="text-site-name font-semibold tracking-[0.05em] gallery-link"
             style={{ fontSize: "1.2em" }}
           >
             The Reiferson Collection
@@ -80,7 +80,7 @@ export default function HomePage() {
         <div className="hidden md:flex gap-6">
           <button
             onClick={() => setCurrentView("work")}
-            className={`text-navigation tracking-[0.05em] font-medium hover:opacity-60 cursor-pointer ${
+            className={`text-navigation tracking-[0.05em] font-medium gallery-link ${
               currentView === "work" ? "opacity-80" : "opacity-60"
             }`}
           >
@@ -88,7 +88,7 @@ export default function HomePage() {
           </button>
           <Link
             href="/about"
-            className="text-navigation tracking-[0.05em] font-medium hover:opacity-60 opacity-60 cursor-pointer"
+            className="text-navigation tracking-[0.05em] font-medium opacity-60 gallery-link"
           >
             About
           </Link>
@@ -96,7 +96,7 @@ export default function HomePage() {
 
         <button
           onClick={() => setMobileMenuOpen(true)}
-          className="md:hidden text-navigation tracking-[0.05em] font-medium cursor-pointer"
+          className="md:hidden text-navigation tracking-[0.05em] font-medium gallery-link"
         >
           Menu
         </button>
@@ -107,7 +107,7 @@ export default function HomePage() {
         <div className="fixed inset-0 z-[60] bg-[#F1EFE7] flex flex-col items-center justify-center">
           <button
             onClick={() => setMobileMenuOpen(false)}
-            className="absolute top-8 right-8 text-black text-2xl hover:opacity-60 z-10 cursor-pointer"
+            className="absolute top-8 right-8 text-black text-2xl z-10 gallery-link"
           >
             ×
           </button>
@@ -117,13 +117,13 @@ export default function HomePage() {
                 setCurrentView("work");
                 setMobileMenuOpen(false);
               }}
-              className="block text-content-subtitle tracking-[0.05em] font-medium hover:opacity-60 w-full cursor-pointer"
+              className="block text-content-subtitle tracking-[0.05em] font-medium w-full gallery-link"
             >
               Work
             </button>
             <Link
               href="/about"
-              className="block text-content-subtitle tracking-[0.05em] font-medium hover:opacity-60 w-full cursor-pointer"
+              className="block text-content-subtitle tracking-[0.05em] font-medium w-full gallery-link"
               onClick={() => setMobileMenuOpen(false)}
             >
               About

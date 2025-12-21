@@ -53,6 +53,15 @@
   --font-size-title: 36px; /* Content title */
   --font-size-subtitle: 1.6em; /* Content sub-title */
   --font-size-copy: 1.1em; /* Content copy */
+
+  /* Interaction timing */
+  --transition-fast: 150ms;
+  --transition-normal: 200ms;
+
+  /* Opacity states */
+  --hover-opacity: 0.7;
+  --active-opacity: 0.5;
+  --disabled-opacity: 0.4;
 }
 
 .dark {
@@ -190,5 +199,43 @@
   .text-content-copy {
     font-family: var(--font-inter);
     font-size: var(--font-size-copy);
+  }
+
+  /* Gallery interactions */
+  .gallery-link {
+    @apply cursor-pointer transition-opacity duration-200 hover:opacity-60 active:opacity-50;
+  }
+
+  .gallery-tab {
+    @apply cursor-pointer transition-colors duration-200;
+  }
+
+  .gallery-image {
+    @apply cursor-pointer transition-transform duration-200 hover:scale-105 active:scale-95;
+  }
+
+  .gallery-nav-btn {
+    @apply cursor-pointer transition-all duration-200 hover:opacity-60 hover:border-black/40 active:opacity-50;
+  }
+
+  /* Admin interactions */
+  .admin-btn-primary {
+    @apply cursor-pointer transition-all duration-150 hover:opacity-80 active:scale-[0.98];
+  }
+
+  .admin-btn-secondary {
+    @apply cursor-pointer transition-all duration-150 hover:bg-black/5 active:bg-black/10;
+  }
+
+  .admin-btn-icon {
+    @apply cursor-pointer transition-all duration-150 hover:opacity-60 active:scale-95;
+  }
+
+  .admin-filter-pill {
+    @apply cursor-pointer transition-colors duration-150;
+  }
+
+  .admin-link {
+    @apply cursor-pointer transition-opacity duration-150 hover:opacity-60;
   }
 }

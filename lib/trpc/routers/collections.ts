@@ -2,9 +2,35 @@ import { z } from "zod";
 import { router, publicProcedure, protectedProcedure } from "../server";
 import { db } from "../../db";
 import { collections, works } from "../../db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export const collectionsRouter = router({
+  // Public query - only returns published collections with published works
+  listPublished: publicProcedure.query(async () => {
+    const publishedCollections = await db
+      .select()
+      .from(collections)
+      .where(eq(collections.isPublished, true));
+
+    const publishedWorks = await db
+      .select()
+      .from(works)
+      .where(eq(works.isPublished, true));
+
+    const collectionsWithWorks = publishedCollections.map((collection) => ({
+      ...collection,
+      works: publishedWorks.filter(
+        (work) => work.collectionId === collection.id
+      ),
+    }));
+
+    // Only return collections that have at least one published work
+    return {
+      collections: collectionsWithWorks.filter((c) => c.works.length > 0),
+    };
+  }),
+
+  // Admin query - returns all collections including drafts
   list: publicProcedure.query(async () => {
     const allCollections = await db.select().from(collections);
     const allWorks = await db.select().from(works);
@@ -46,8 +72,9 @@ export const collectionsRouter = router({
       z.object({
         id: z.string(),
         name: z.string(),
-        description: z.string().optional(),
-        curatorNote: z.string().optional(),
+        description: z.string().nullish(),
+        curatorNote: z.string().nullish(),
+        isPublished: z.boolean().optional().default(false),
       })
     )
     .mutation(async ({ input }) => {
@@ -58,6 +85,7 @@ export const collectionsRouter = router({
           name: input.name,
           description: input.description,
           curatorNote: input.curatorNote,
+          isPublished: input.isPublished,
         })
         .returning();
 
@@ -69,8 +97,9 @@ export const collectionsRouter = router({
       z.object({
         id: z.string(),
         name: z.string().optional(),
-        description: z.string().optional(),
-        curatorNote: z.string().optional(),
+        description: z.string().nullish(),
+        curatorNote: z.string().nullish(),
+        isPublished: z.boolean().optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -87,6 +116,46 @@ export const collectionsRouter = router({
 
       if (!updated) {
         throw new Error("Collection not found");
+      }
+
+      return updated;
+    }),
+
+  // Toggle publish status
+  togglePublish: protectedProcedure
+    .input(z.object({ id: z.string(), publishWorks: z.boolean().optional() }))
+    .mutation(async ({ input }) => {
+      // Get current status
+      const [current] = await db
+        .select()
+        .from(collections)
+        .where(eq(collections.id, input.id));
+
+      if (!current) {
+        throw new Error("Collection not found");
+      }
+
+      const newStatus = !current.isPublished;
+
+      // Update the collection
+      const [updated] = await db
+        .update(collections)
+        .set({
+          isPublished: newStatus,
+          updatedAt: new Date(),
+        })
+        .where(eq(collections.id, input.id))
+        .returning();
+
+      // If publishing the collection and publishWorks is true, publish all works in this collection
+      if (newStatus && input.publishWorks) {
+        await db
+          .update(works)
+          .set({
+            isPublished: true,
+            updatedAt: new Date(),
+          })
+          .where(eq(works.collectionId, input.id));
       }
 
       return updated;

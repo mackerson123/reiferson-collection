@@ -63,18 +63,19 @@ export const worksRouter = router({
       z.object({
         id: z.string(),
         title: z.string(),
-        artist: z.string().optional(),
-        date: z.string().optional(),
-        medium: z.string().optional(),
-        dimensions: z.string().optional(),
-        description: z.string().optional(),
-        narrative: z.string().optional(),
-        provenance: z.string().optional(),
-        exhibition: z.string().optional(),
-        relatedObjects: z.array(z.string()).optional(),
+        artist: z.string().nullish(),
+        date: z.string().nullish(),
+        medium: z.string().nullish(),
+        dimensions: z.string().nullish(),
+        description: z.string().nullish(),
+        narrative: z.string().nullish(),
+        provenance: z.string().nullish(),
+        exhibition: z.string().nullish(),
+        relatedObjects: z.array(z.string()).nullish(),
         imageUrl: z.string(),
-        thumbnailUrl: z.string().optional(),
+        thumbnailUrl: z.string().nullish(),
         collectionId: z.string(),
+        isPublished: z.boolean().optional().default(false),
       })
     )
     .mutation(async ({ input }) => {
@@ -87,18 +88,19 @@ export const worksRouter = router({
       z.object({
         id: z.string(),
         title: z.string().optional(),
-        artist: z.string().optional(),
-        date: z.string().optional(),
-        medium: z.string().optional(),
-        dimensions: z.string().optional(),
-        description: z.string().optional(),
-        narrative: z.string().optional(),
-        provenance: z.string().optional(),
-        exhibition: z.string().optional(),
-        relatedObjects: z.array(z.string()).optional(),
+        artist: z.string().nullish(),
+        date: z.string().nullish(),
+        medium: z.string().nullish(),
+        dimensions: z.string().nullish(),
+        description: z.string().nullish(),
+        narrative: z.string().nullish(),
+        provenance: z.string().nullish(),
+        exhibition: z.string().nullish(),
+        relatedObjects: z.array(z.string()).nullish(),
         imageUrl: z.string().optional(),
-        thumbnailUrl: z.string().optional(),
-        collectionId: z.string().optional(),
+        thumbnailUrl: z.string().nullish(),
+        collectionId: z.string().nullish(),
+        isPublished: z.boolean().optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -120,6 +122,30 @@ export const worksRouter = router({
       return updated;
     }),
 
+  togglePublish: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input }) => {
+      const [current] = await db
+        .select()
+        .from(works)
+        .where(eq(works.id, input.id));
+
+      if (!current) {
+        throw new Error("Work not found");
+      }
+
+      const [updated] = await db
+        .update(works)
+        .set({
+          isPublished: !current.isPublished,
+          updatedAt: new Date(),
+        })
+        .where(eq(works.id, input.id))
+        .returning();
+
+      return updated;
+    }),
+
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
@@ -135,4 +161,3 @@ export const worksRouter = router({
       return { success: true };
     }),
 });
-
