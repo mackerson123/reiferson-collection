@@ -49,7 +49,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps) {
           <div>
             <a
               href="/"
-              className="text-3xl md:text-4xl font-sans font-bold text-black hover:text-gray-700 transition-colors"
+              className="text-subheading md:text-heading font-sans font-bold text-black hover:text-gray-700 transition-colors"
             >
               The Reiferson Collection
             </a>
@@ -59,7 +59,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps) {
           <div className="hidden md:flex items-center gap-8 absolute right-8 md:right-16 lg:right-24">
             <a
               href="/"
-              className={`text-sm font-sans transition-colors ${
+              className={`text-nav font-sans transition-colors ${
                 isActive("/") ? "text-black font-medium" : "text-black hover:text-gray-600"
               }`}
             >
@@ -70,7 +70,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps) {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className={`flex items-center gap-1 px-0 hover:bg-transparent text-sm font-sans ${
+                  className={`flex items-center gap-1 px-0 hover:bg-transparent text-nav font-sans ${
                     currentPath?.startsWith("/collections")
                       ? "text-black font-medium"
                       : "text-black hover:text-gray-600"
@@ -88,7 +88,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps) {
                       className="flex flex-col items-start gap-1 p-4 cursor-pointer hover:bg-gray-50"
                     >
                       <span className="font-medium text-black font-sans">{collection.title}</span>
-                      <span className="text-sm text-gray-600 font-sans">{collection.subtitle}</span>
+                      <span className="text-nav text-gray-600 font-sans">{collection.subtitle}</span>
                     </a>
                   </DropdownMenuItem>
                 ))}
@@ -97,7 +97,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps) {
 
             <a
               href="/about"
-              className={`text-sm font-sans transition-colors ${
+              className={`text-nav font-sans transition-colors ${
                 isActive("/about") ? "text-black font-medium" : "text-black hover:text-gray-600"
               }`}
             >
@@ -124,7 +124,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps) {
             <div className="flex flex-col gap-4">
               <a
                 href="/"
-                className={`text-base font-sans transition-colors ${
+                className={`text-nav font-sans transition-colors ${
                   isActive("/") ? "text-black font-medium" : "text-black hover:text-gray-600"
                 }`}
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -134,7 +134,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps) {
 
               {/* Mobile Collections */}
               <div className="space-y-2">
-                <span className="text-base font-medium text-black font-sans">Collections</span>
+                <span className="text-nav font-medium text-black font-sans">Collections</span>
                 <div className="pl-4 space-y-3">
                   {collections.map((collection) => (
                     <a
@@ -145,7 +145,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps) {
                     >
                       <div className="flex flex-col gap-1">
                         <span className="font-medium font-sans">{collection.title}</span>
-                        <span className="text-sm text-gray-600 font-sans">{collection.subtitle}</span>
+                        <span className="text-nav text-gray-600 font-sans">{collection.subtitle}</span>
                       </div>
                     </a>
                   ))}
@@ -154,7 +154,7 @@ export default function Navigation({ currentPath = "/" }: NavigationProps) {
 
               <a
                 href="/about"
-                className={`text-base font-sans transition-colors ${
+                className={`text-nav font-sans transition-colors ${
                   isActive("/about") ? "text-black font-medium" : "text-black hover:text-gray-600"
                 }`}
                 onClick={() => setIsMobileMenuOpen(false)}

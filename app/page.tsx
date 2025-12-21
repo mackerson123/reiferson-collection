@@ -69,10 +69,7 @@ export default function HomePage() {
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-[#F1EFE7] flex justify-between items-center p-6 md:p-8">
         <Link href="/">
-          <h1
-            className="text-site-name font-semibold tracking-[0.05em] gallery-link"
-            style={{ fontSize: "1.2em" }}
-          >
+          <h1 className="text-[18px] md:text-subheading font-semibold tracking-[0.05em] gallery-link">
             The Reiferson Collection
           </h1>
         </Link>
@@ -80,7 +77,7 @@ export default function HomePage() {
         <div className="hidden md:flex gap-6">
           <button
             onClick={() => setCurrentView("work")}
-            className={`text-navigation tracking-[0.05em] font-medium gallery-link ${
+            className={`text-nav tracking-[0.05em] font-medium gallery-link ${
               currentView === "work" ? "opacity-80" : "opacity-60"
             }`}
           >
@@ -88,7 +85,7 @@ export default function HomePage() {
           </button>
           <Link
             href="/about"
-            className="text-navigation tracking-[0.05em] font-medium opacity-60 gallery-link"
+            className="text-nav tracking-[0.05em] font-medium opacity-60 gallery-link"
           >
             About
           </Link>
@@ -96,7 +93,7 @@ export default function HomePage() {
 
         <button
           onClick={() => setMobileMenuOpen(true)}
-          className="md:hidden text-navigation tracking-[0.05em] font-medium gallery-link"
+          className="md:hidden text-nav tracking-[0.05em] font-medium gallery-link"
         >
           Menu
         </button>
@@ -117,13 +114,13 @@ export default function HomePage() {
                 setCurrentView("work");
                 setMobileMenuOpen(false);
               }}
-              className="block text-content-subtitle tracking-[0.05em] font-medium w-full gallery-link"
+              className="block text-subheading tracking-[0.05em] font-medium w-full gallery-link"
             >
               Work
             </button>
             <Link
               href="/about"
-              className="block text-content-subtitle tracking-[0.05em] font-medium w-full gallery-link"
+              className="block text-subheading tracking-[0.05em] font-medium w-full gallery-link"
               onClick={() => setMobileMenuOpen(false)}
             >
               About

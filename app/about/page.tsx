@@ -10,10 +10,7 @@ export default function AboutPage() {
     <div className="min-h-screen bg-[#F1EFE7] text-black font-sans flex flex-col">
       <nav className="sticky top-0 z-50 bg-[#F1EFE7] flex justify-between items-center p-6 md:p-8">
         <Link href="/">
-          <h1
-            className="text-site-name font-semibold tracking-[0.05em] gallery-link"
-            style={{ fontSize: "1.2em" }}
-          >
+          <h1 className="text-[18px] md:text-subheading font-semibold tracking-[0.05em] gallery-link">
             The Reiferson Collection
           </h1>
         </Link>
@@ -21,18 +18,18 @@ export default function AboutPage() {
         <div className="hidden md:flex gap-6">
           <Link
             href="/"
-            className="text-navigation tracking-[0.05em] font-medium opacity-60 gallery-link"
+            className="text-nav tracking-[0.05em] font-medium opacity-60 gallery-link"
           >
             Work
           </Link>
-          <span className="text-navigation tracking-[0.05em] font-medium opacity-80">
+          <span className="text-nav tracking-[0.05em] font-medium opacity-80">
             About
           </span>
         </div>
 
         <button
           onClick={() => setMobileMenuOpen(true)}
-          className="md:hidden text-navigation tracking-[0.05em] font-medium gallery-link"
+          className="md:hidden text-nav tracking-[0.05em] font-medium gallery-link"
         >
           Menu
         </button>
@@ -50,12 +47,12 @@ export default function AboutPage() {
           <div className="space-y-6 text-center">
             <Link
               href="/"
-              className="block text-content-subtitle tracking-[0.05em] font-medium w-full gallery-link"
+              className="block text-subheading tracking-[0.05em] font-medium w-full gallery-link"
               onClick={() => setMobileMenuOpen(false)}
             >
               Work
             </Link>
-            <span className="block text-content-subtitle tracking-[0.05em] font-medium opacity-80 w-full">
+            <span className="block text-subheading tracking-[0.05em] font-medium opacity-80 w-full">
               About
             </span>
           </div>
@@ -64,10 +61,10 @@ export default function AboutPage() {
 
       <main className="flex-1 px-4 md:px-32 lg:px-40 max-w-4xl mx-auto py-8">
         <div className="space-y-8 md:space-y-12">
-          <h1 className="text-content-title font-semibold tracking-[0.05em]">
+          <h1 className="text-heading font-semibold tracking-[0.05em]">
             The Reiferson Collection
           </h1>
-          <div className="space-y-6 leading-relaxed text-content-copy">
+          <div className="space-y-6 leading-relaxed text-body">
             <p>
               The Reiferson Collection represents one of the most comprehensive
               archives of vintage baseball photography, documenting the
@@ -89,7 +86,7 @@ export default function AboutPage() {
             </p>
             <Link
               href="/"
-              className="text-xs md:text-utility tracking-[0.05em] font-medium gallery-link"
+              className="text-small md:text-small tracking-[0.05em] font-medium gallery-link"
             >
               ← <span className="hidden sm:inline">Back to collection</span>
               <span className="sm:hidden">Back</span>

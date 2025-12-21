@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { Work } from "../lib/types";
 
@@ -10,6 +10,50 @@ interface ImageDetailViewProps {
   onNext: () => void;
 }
 
+const TabContent = ({
+  children,
+  isEmpty = false,
+  emptyMessage,
+}: {
+  children: React.ReactNode;
+  isEmpty?: boolean;
+  emptyMessage?: string;
+}) => {
+  return (
+    <div className="max-w-prose">
+      {isEmpty && emptyMessage ? (
+        <span className="text-body text-black/40 italic leading-8">
+          {emptyMessage}
+        </span>
+      ) : (
+        children
+      )}
+    </div>
+  );
+};
+
+const TabText = ({ content }: { content: string }) => (
+  <p className="text-body leading-8 text-black/90 font-light whitespace-pre-line">
+    {content}
+  </p>
+);
+
+const MetadataRow = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | null | undefined;
+}) => {
+  if (!value) return null;
+  return (
+    <div className="flex items-baseline gap-6 py-3 border-b border-black/5 last:border-0">
+      <dt className="w-24 shrink-0 text-body text-black/50">{label}</dt>
+      <dd className="text-body text-black/90 font-light">{value}</dd>
+    </div>
+  );
+};
+
 export default function ImageDetailView({
   selectedImageIndex,
   currentWorks,
@@ -20,27 +64,59 @@ export default function ImageDetailView({
   const [activeTab, setActiveTab] = useState<
     | "narrative"
     | "description"
-    | "details"
     | "provenance"
     | "related objects"
     | "exhibition"
   >("narrative");
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isZoomedIn, setIsZoomedIn] = useState(false);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const tabsContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const currentWork = currentWorks[selectedImageIndex];
+
+  const checkScrollability = React.useCallback(() => {
+    const container = tabsContainerRef.current;
+    if (!container) return;
+    setCanScrollLeft(container.scrollLeft > 0);
+    setCanScrollRight(
+      container.scrollLeft < container.scrollWidth - container.clientWidth - 1
+    );
+  }, []);
+
+  React.useEffect(() => {
+    checkScrollability();
+    window.addEventListener("resize", checkScrollability);
+    return () => window.removeEventListener("resize", checkScrollability);
+  }, [checkScrollability]);
+
+  const scrollTabs = (direction: "left" | "right") => {
+    const container = tabsContainerRef.current;
+    if (!container) return;
+    const scrollAmount =
+      direction === "left" ? -container.scrollWidth : container.scrollWidth;
+    container.scrollBy({
+      left: scrollAmount,
+      behavior: "smooth",
+    });
+  };
 
   return (
     <main className="flex-1 bg-[#F1EFE7] min-h-0 relative">
       {/* Top Navigation Bar */}
       <div className="absolute top-0 left-0 right-0 z-10 bg-[#F1EFE7]/95 backdrop-blur-sm border-b border-black/10">
-        <div className="flex justify-between items-center px-4 md:px-8 py-3 md:py-4">
+        <div className="flex justify-between items-center px-4 md:px-8 h-[52px] md:h-[56px]">
           <button
             onClick={onBack}
-            className="text-xs md:text-utility tracking-[0.05em] font-medium gallery-link"
+            className="text-small md:text-nav tracking-[0.05em] font-medium gallery-link"
           >
             ← <span className="hidden sm:inline">Back to gallery</span>
             <span className="sm:hidden">Back</span>
           </button>
 
           <div className="flex items-center gap-2 md:gap-6">
-            <span className="text-xs md:text-utility opacity-60">
+            <span className="text-small md:text-nav opacity-60">
               {selectedImageIndex + 1} of {currentWorks.length}
             </span>
             <div className="flex gap-1 md:gap-3">
@@ -64,42 +140,64 @@ export default function ImageDetailView({
       </div>
 
       {/* Main Content Area */}
-      <div className="h-full flex flex-col md:flex-row pt-12 md:pt-16">
+      <div className="h-full flex flex-col md:flex-row pt-[52px] md:pt-[56px]">
         {/* Image Section */}
         <div className="w-full md:w-3/5 flex items-center justify-center p-4 md:p-8">
-          <div className="relative w-full h-[40vh] md:h-[75vh]">
+          <button
+            onClick={() => setIsFullscreen(true)}
+            className="relative w-full h-[40vh] md:h-[75vh] cursor-zoom-in group"
+            aria-label="View fullscreen"
+          >
             <Image
-              src={
-                currentWorks[selectedImageIndex]?.imageUrl ||
-                "/vintage-baseball-photograph.png"
-              }
-              alt={
-                currentWorks[selectedImageIndex]?.title ||
-                `Work ${selectedImageIndex + 1}`
-              }
+              src={currentWork?.imageUrl || "/vintage-baseball-photograph.png"}
+              alt={currentWork?.title || `Work ${selectedImageIndex + 1}`}
               fill
               sizes="(max-width: 768px) 100vw, 60vw"
-              className="object-contain"
+              className="object-contain transition-transform duration-300 group-hover:scale-[1.02]"
               priority
               quality={85}
             />
-          </div>
+          </button>
         </div>
 
         {/* Information Panel */}
         <div className="w-full md:w-2/5 border-t md:border-t-0 md:border-l border-black/10 bg-[#F1EFE7] flex flex-col">
+          {/* Title - Always Visible */}
+          <div className="px-4 md:px-8 pt-4 md:pt-6 pb-2">
+            <h2 className="text-heading font-serif text-black/90">
+              {currentWork?.title || "Untitled"}
+            </h2>
+            {currentWork?.artist && (
+              <p className="text-small text-black/60 mt-1">
+                {currentWork.artist}
+              </p>
+            )}
+          </div>
+
           {/* Scrollable Tab Navigation */}
-          <div className="border-b border-black/10 px-4 md:px-6 bg-[#F1EFE7]">
+          <div className="border-b border-black/10 px-4 md:px-8 bg-[#F1EFE7] relative">
+            <button
+              onClick={() => scrollTabs("left")}
+              className={`absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-[#F1EFE7] via-[#F1EFE7]/90 to-transparent z-10 flex items-center justify-start pl-2 cursor-pointer transition-opacity duration-300 ${
+                canScrollLeft ? "opacity-100" : "opacity-0 pointer-events-none"
+              }`}
+              aria-label="Scroll tabs left"
+            >
+              <span className="text-black/50 text-nav hover:text-black/80 transition-colors">
+                ←
+              </span>
+            </button>
             <div
+              ref={tabsContainerRef}
               className="overflow-x-auto scrollbar-hide"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              onScroll={checkScrollability}
             >
-              <div className="flex gap-3 md:gap-6 min-w-max">
+              <div className="flex gap-6 md:gap-8 min-w-max">
                 {(
                   [
                     "narrative",
                     "description",
-                    "details",
                     "provenance",
                     "related objects",
                     "exhibition",
@@ -108,114 +206,166 @@ export default function ImageDetailView({
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`py-3 md:py-4 text-xs md:text-sm font-medium tracking-[0.05em] capitalize whitespace-nowrap relative gallery-tab ${
+                    className={`py-3 md:py-4 text-small md:text-nav font-medium tracking-[0.02em] capitalize relative transition-all duration-300 cursor-pointer ${
                       activeTab === tab
-                        ? "text-black"
-                        : "text-black/60 hover:text-black/80"
+                        ? "text-black opacity-100"
+                        : "text-black/50 hover:text-black/80 hover:opacity-100"
                     }`}
                   >
                     {tab}
-                    {activeTab === tab && (
-                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black"></div>
-                    )}
+                    <span
+                      className={`absolute bottom-0 left-0 right-0 h-[2px] bg-black transition-all duration-300 ${
+                        activeTab === tab
+                          ? "w-full opacity-100"
+                          : "w-0 opacity-0"
+                      }`}
+                    />
                   </button>
                 ))}
               </div>
             </div>
+            <button
+              onClick={() => scrollTabs("right")}
+              className={`absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-[#F1EFE7] via-[#F1EFE7]/90 to-transparent z-10 flex items-center justify-end pr-2 cursor-pointer transition-opacity duration-300 ${
+                canScrollRight ? "opacity-100" : "opacity-0 pointer-events-none"
+              }`}
+              aria-label="Scroll tabs right"
+            >
+              <span className="text-black/50 text-nav hover:text-black/80 transition-colors">
+                →
+              </span>
+            </button>
           </div>
 
           {/* Content Area */}
-          <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
+          <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 md:py-8 bg-[#F1EFE7]">
             {activeTab === "narrative" && (
-              <div className="text-content-copy leading-relaxed space-y-4">
-                <p>
-                  {currentWorks[selectedImageIndex]?.narrative ||
-                    `Narrative content for "${
-                      currentWorks[selectedImageIndex]?.title || "this work"
-                    }" would appear here.`}
-                </p>
-              </div>
+              <TabContent
+                isEmpty={!currentWork?.narrative}
+                emptyMessage="No narrative available for this work."
+              >
+                {currentWork?.narrative && (
+                  <TabText content={currentWork.narrative} />
+                )}
+              </TabContent>
             )}
 
             {activeTab === "description" && (
-              <div className="text-content-copy leading-relaxed space-y-4">
-                <h3 className="font-semibold">
-                  {currentWorks[selectedImageIndex]?.title}
-                </h3>
-                {currentWorks[selectedImageIndex]?.artist && (
-                  <p>
-                    <strong>Artist:</strong>{" "}
-                    {currentWorks[selectedImageIndex]?.artist}
-                  </p>
-                )}
-                {currentWorks[selectedImageIndex]?.date && (
-                  <p>
-                    <strong>Date:</strong>{" "}
-                    {currentWorks[selectedImageIndex]?.date}
-                  </p>
-                )}
-                {currentWorks[selectedImageIndex]?.medium && (
-                  <p>
-                    <strong>Medium:</strong>{" "}
-                    {currentWorks[selectedImageIndex]?.medium}
-                  </p>
-                )}
-                {currentWorks[selectedImageIndex]?.dimensions && (
-                  <p>
-                    <strong>Dimensions:</strong>{" "}
-                    {currentWorks[selectedImageIndex]?.dimensions}
-                  </p>
-                )}
-                <p>
-                  {currentWorks[selectedImageIndex]?.description ||
-                    "Technical description would appear here."}
-                </p>
-              </div>
-            )}
+              <TabContent>
+                <div className="space-y-6">
+                  {currentWork?.description && (
+                    <TabText content={currentWork.description} />
+                  )}
 
-            {activeTab === "details" && (
-              <div className="text-content-copy leading-relaxed space-y-4">
-                <p>
-                  Detailed technical information and analysis content would
-                  appear here for image {selectedImageIndex + 1}.
-                </p>
-                <p>
-                  Physical dimensions, materials, condition reports, and other
-                  technical specifications would be documented here.
-                </p>
-              </div>
+                  <dl className="space-y-0">
+                    <MetadataRow label="Date" value={currentWork?.date} />
+                    <MetadataRow label="Medium" value={currentWork?.medium} />
+                    <MetadataRow
+                      label="Dimensions"
+                      value={currentWork?.dimensions}
+                    />
+                  </dl>
+                </div>
+              </TabContent>
             )}
 
             {activeTab === "provenance" && (
-              <div className="text-content-copy leading-relaxed space-y-4">
-                <p>
-                  {currentWorks[selectedImageIndex]?.provenance ||
-                    "Provenance information would appear here."}
-                </p>
-              </div>
+              <TabContent
+                isEmpty={!currentWork?.provenance}
+                emptyMessage="No provenance records available."
+              >
+                {currentWork?.provenance && (
+                  <TabText content={currentWork.provenance} />
+                )}
+              </TabContent>
             )}
 
             {activeTab === "related objects" && (
-              <div className="text-content-copy leading-relaxed space-y-4">
-                <p>Related objects and context would appear here.</p>
-                <p>
-                  Connections to other items in the collection, related
-                  photographs, documents, or artifacts would be highlighted.
-                </p>
-              </div>
+              <TabContent
+                isEmpty={!currentWork?.relatedObjects?.length}
+                emptyMessage="No related objects linked."
+              >
+                {currentWork?.relatedObjects?.length && (
+                  <ul className="grid grid-cols-2 gap-4">
+                    {currentWork.relatedObjects.map((relatedId, idx) => (
+                      <li
+                        key={idx}
+                        className="p-4 border border-black/10 rounded-sm text-body"
+                      >
+                        {relatedId}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </TabContent>
             )}
 
             {activeTab === "exhibition" && (
-              <div className="text-content-copy leading-relaxed space-y-4">
-                <p>
-                  {currentWorks[selectedImageIndex]?.exhibition ||
-                    "Exhibition history would appear here."}
-                </p>
-              </div>
+              <TabContent
+                isEmpty={!currentWork?.exhibition}
+                emptyMessage="No exhibition history available."
+              >
+                {currentWork?.exhibition && (
+                  <TabText content={currentWork.exhibition} />
+                )}
+              </TabContent>
             )}
           </div>
         </div>
       </div>
+      {/* Fullscreen Image Overlay */}
+      {isFullscreen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center overflow-auto"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsFullscreen(false);
+              setIsZoomedIn(false);
+            }
+          }}
+        >
+          <button
+            onClick={() => {
+              setIsFullscreen(false);
+              setIsZoomedIn(false);
+            }}
+            className="absolute top-4 right-4 md:top-8 md:right-8 text-white/80 hover:text-white transition-colors z-20 cursor-pointer"
+            aria-label="Close fullscreen"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+          <div
+            className={`relative transition-all duration-300 ${
+              isZoomedIn
+                ? "w-[150vw] h-[150vh] cursor-zoom-out"
+                : "w-[90vw] h-[90vh] cursor-zoom-in"
+            }`}
+            onClick={() => setIsZoomedIn(!isZoomedIn)}
+          >
+            <Image
+              src={currentWork?.imageUrl || "/vintage-baseball-photograph.png"}
+              alt={currentWork?.title || `Work ${selectedImageIndex + 1}`}
+              fill
+              sizes={isZoomedIn ? "150vw" : "90vw"}
+              className="object-contain"
+              quality={100}
+            />
+          </div>
+        </div>
+      )}
     </main>
   );
 }

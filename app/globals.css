@@ -46,13 +46,13 @@
   --font-arial: var(--font-inter);
   --font-futura: var(--font-inter);
 
-  /* Typography scale based on font key specifications */
-  --font-size-utility: 11px; /* Utility links, breadcrumbs, footer links */
-  --font-size-navigation: 14px; /* Navigation bar */
-  --font-size-site-name: 22px; /* Site name */
-  --font-size-title: 36px; /* Content title */
-  --font-size-subtitle: 1.6em; /* Content sub-title */
-  --font-size-copy: 1.1em; /* Content copy */
+  /* Typography scale - 6 unified sizes */
+  --font-size-display: 60px; /* Hero titles */
+  --font-size-heading: 36px; /* Page/section titles */
+  --font-size-subheading: 24px; /* Section headers, site name */
+  --font-size-body: 1.1em; /* All body copy */
+  --font-size-nav: 14px; /* Navigation, tabs */
+  --font-size-small: 12px; /* Small UI elements */
 
   /* Interaction timing */
   --transition-fast: 150ms;
@@ -170,35 +170,35 @@
     display: none;
   }
 
-  /* Updated all typography utility classes to use Inter */
-  .text-utility {
+  /* Typography utility classes - 6 unified sizes */
+  .text-display {
     font-family: var(--font-inter);
-    font-size: var(--font-size-utility);
+    font-size: var(--font-size-display);
   }
 
-  .text-navigation {
+  .text-heading {
     font-family: var(--font-inter);
-    font-size: var(--font-size-navigation);
+    font-size: var(--font-size-heading);
   }
 
-  .text-site-name {
+  .text-subheading {
     font-family: var(--font-inter);
-    font-size: var(--font-size-site-name);
+    font-size: var(--font-size-subheading);
   }
 
-  .text-content-title {
+  .text-body {
     font-family: var(--font-inter);
-    font-size: var(--font-size-title);
+    font-size: var(--font-size-body);
   }
 
-  .text-content-subtitle {
+  .text-nav {
     font-family: var(--font-inter);
-    font-size: var(--font-size-subtitle);
+    font-size: var(--font-size-nav);
   }
 
-  .text-content-copy {
+  .text-small {
     font-family: var(--font-inter);
-    font-size: var(--font-size-copy);
+    font-size: var(--font-size-small);
   }
 
   /* Gallery interactions */

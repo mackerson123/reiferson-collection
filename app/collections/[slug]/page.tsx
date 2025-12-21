@@ -172,13 +172,13 @@ export default function CollectionPage({ params }: CollectionPageProps) {
             <div className="absolute inset-0 bg-black/40"></div>
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center text-white max-w-4xl px-6">
-                <h1 className="text-4xl lg:text-6xl font-bold mb-4">
+                <h1 className="text-heading lg:text-display font-bold mb-4">
                   {collection.title}
                 </h1>
-                <h2 className="text-xl lg:text-2xl font-medium mb-6">
+                <h2 className="text-subheading font-medium mb-6">
                   {collection.subtitle}
                 </h2>
-                <p className="text-lg lg:text-xl leading-relaxed max-w-3xl mx-auto">
+                <p className="text-body leading-relaxed max-w-3xl mx-auto">
                   {collection.description}
                 </p>
               </div>
@@ -192,7 +192,7 @@ export default function CollectionPage({ params }: CollectionPageProps) {
         <div className="max-w-7xl mx-auto">
           <a
             href="/"
-            className="text-xs md:text-utility tracking-[0.05em] font-medium gallery-link mb-8 inline-block"
+            className="text-small tracking-[0.05em] font-medium gallery-link mb-8 inline-block"
           >
             ← <span className="hidden sm:inline">Back to collection</span>
             <span className="sm:hidden">Back</span>
@@ -238,14 +238,14 @@ export default function CollectionPage({ params }: CollectionPageProps) {
               >
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-3xl font-bold text-foreground mb-2">
+                    <h3 className="text-heading font-bold text-foreground mb-2">
                       {photo.title}
                     </h3>
-                    <p className="text-lg text-primary font-medium">
+                    <p className="text-body text-primary font-medium">
                       {photo.year}
                     </p>
                   </div>
-                  <p className="text-lg text-foreground/80 leading-relaxed">
+                  <p className="text-body text-foreground/80 leading-relaxed">
                     {photo.story}
                   </p>
                 </div>
@@ -258,7 +258,7 @@ export default function CollectionPage({ params }: CollectionPageProps) {
       {/* Navigation to Other Collections */}
       <section className="py-16 px-6 bg-card">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-foreground mb-12">
+          <h2 className="text-heading font-bold text-center text-foreground mb-12">
             Explore More Collections
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -283,10 +283,10 @@ export default function CollectionPage({ params }: CollectionPageProps) {
                         />
                         <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors"></div>
                         <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                          <h3 className="text-xl font-bold mb-1">
+                          <h3 className="text-subheading font-bold mb-1">
                             {otherCollection.title}
                           </h3>
-                          <p className="text-white/90 text-sm">
+                          <p className="text-white/90 text-nav">
                             {otherCollection.subtitle}
                           </p>
                         </div>

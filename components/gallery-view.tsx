@@ -244,38 +244,36 @@ export default function GalleryView({
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <div className="bg-[#F1EFE7] border-b border-black/10">
-        {/* Mobile: Centered tabs with horizontal overflow support */}
-        <div className="sm:hidden">
-          <div className="overflow-x-auto scrollbar-hide px-4 py-3">
-            <div className="flex gap-8 items-center justify-center min-w-max">
-              {collections.map((collection) => (
-                <button
-                  key={collection.id}
-                  onClick={() => handleFilterChange(collection.id)}
-                  className={`relative py-2 px-1 text-sm font-medium tracking-[0.05em] whitespace-nowrap gallery-tab ${
-                    activeFilter === collection.id
-                      ? "text-black"
-                      : "text-black/50 hover:text-black/75"
-                  }`}
-                >
-                  {collection.name}
-                  {activeFilter === collection.id && (
-                    <div className="absolute -bottom-3 left-0 right-0 h-0.5 bg-black rounded-full"></div>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Desktop: Original horizontal scrolling layout */}
-        <div className="hidden sm:block px-6 md:px-8">
-          <div className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide">
+        {/* Mobile: tabs with horizontal overflow support */}
+        <div className="sm:hidden px-4 h-[52px]">
+          <div className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide items-center h-full">
             {collections.map((collection) => (
               <button
                 key={collection.id}
                 onClick={() => handleFilterChange(collection.id)}
-                className={`py-4 text-utility tracking-[0.05em] font-medium whitespace-nowrap relative gallery-tab ${
+                className={`text-nav tracking-[0.05em] font-medium whitespace-nowrap relative gallery-tab cursor-pointer h-full flex items-center ${
+                  activeFilter === collection.id
+                    ? "text-black"
+                    : "text-black/50 hover:text-black/75"
+                }`}
+              >
+                {collection.name}
+                {activeFilter === collection.id && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black"></div>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop: Original horizontal scrolling layout */}
+        <div className="hidden sm:block px-4 md:px-8">
+          <div className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide items-center h-[52px] md:h-[56px]">
+            {collections.map((collection) => (
+              <button
+                key={collection.id}
+                onClick={() => handleFilterChange(collection.id)}
+                className={`text-nav tracking-[0.05em] font-medium whitespace-nowrap relative gallery-tab cursor-pointer h-full flex items-center ${
                   activeFilter === collection.id
                     ? "text-black"
                     : "text-black/60 hover:text-black/80"
@@ -347,7 +345,9 @@ export default function GalleryView({
                   />
                   <div
                     className={`absolute top-1 left-1 bg-black/70 text-white ${
-                      isMobile ? "text-xs px-1 py-0.5" : "text-xs px-1 py-0.5"
+                      isMobile
+                        ? "text-small px-1 py-0.5"
+                        : "text-small px-1 py-0.5"
                     } rounded`}
                   >
                     {index + 1}
@@ -361,15 +361,15 @@ export default function GalleryView({
 
       {/* Collection info footer - outside scroll area */}
       <div className="bg-[#F1EFE7] py-2 md:py-3 text-center">
-        <div className="text-sm md:text-content-title font-bold tracking-[0.02em]">
+        <div className="text-nav md:text-heading font-bold tracking-[0.02em]">
           {collections.find((c) => c.id === activeFilter)?.name || "Collection"}
-          <span className="text-sm md:text-lg font-normal">
+          <span className="text-nav md:text-lg font-normal">
             {" "}
             ({collections.find((c) => c.id === activeFilter)?.works.length || 0}
             )
           </span>
         </div>
-        <div className="text-xs md:text-utility opacity-60 tracking-[0.05em]">
+        <div className="text-small md:text-nav opacity-60 tracking-[0.05em]">
           /{collections.reduce((sum, c) => sum + c.works.length, 0)} photos
         </div>
       </div>
