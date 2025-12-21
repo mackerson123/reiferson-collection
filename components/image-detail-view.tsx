@@ -20,7 +20,7 @@ const TabContent = ({
   emptyMessage?: string;
 }) => {
   return (
-    <div className="max-w-prose">
+    <div className="max-w-prose min-h-[200px]">
       {isEmpty && emptyMessage ? (
         <span className="text-body text-black/40 italic leading-8">
           {emptyMessage}
