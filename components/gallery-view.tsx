@@ -16,7 +16,7 @@ export default function GalleryView({
     trpc.collections.listPublished.useQuery();
   const [activeFilter, setActiveFilter] = useState<string>("");
   const [currentWorks, setCurrentWorks] = useState<Work[]>([]);
-  const [containerHeight, setContainerHeight] = useState(600);
+  const [containerHeight, setContainerHeight] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -227,10 +227,11 @@ export default function GalleryView({
     );
   };
 
-  if (isLoading) {
+  if (isLoading || containerHeight === 0) {
     return (
       <div className="flex flex-col flex-1 min-h-0 items-center justify-center">
-        <p>Loading collections...</p>
+        <div ref={containerRef} className="absolute inset-0" />
+        {isLoading && <p>Loading collections...</p>}
       </div>
     );
   }
@@ -283,11 +284,7 @@ export default function GalleryView({
         </div>
       </div>
 
-      <main
-        ref={containerRef}
-        className="flex-1 relative"
-        style={{ minHeight: isMobile ? "300px" : "400px" }}
-      >
+      <main ref={containerRef} className="flex-1 relative min-h-0">
         <div
           ref={scrollContainerRef}
           className="absolute inset-0 overflow-x-auto overflow-y-hidden scrollbar-hide"
@@ -353,8 +350,8 @@ export default function GalleryView({
         </div>
       </main>
 
-      {/* Collection info footer - outside scroll area */}
-      <div className="bg-[#F1EFE7] py-2 md:py-3 text-center">
+      {/* Collection info footer - always visible */}
+      <div className="bg-[#F1EFE7] py-2 md:py-3 text-center flex-shrink-0">
         <div className="text-nav md:text-heading font-bold tracking-[0.02em]">
           {collections.find((c) => c.id === activeFilter)?.name || "Collection"}
           <span className="text-nav md:text-lg font-normal">

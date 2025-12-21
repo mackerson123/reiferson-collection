@@ -51,9 +51,9 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F1EFE7] text-black font-sans flex flex-col">
+    <div className="h-dvh bg-[#F1EFE7] text-black font-sans flex flex-col overflow-hidden">
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-[#F1EFE7] flex justify-between items-center p-4">
+      <nav className="flex-shrink-0 bg-[#F1EFE7] flex justify-between items-center p-4">
         <Link href="/">
           <h1 className="text-[18px] md:text-subheading font-semibold tracking-[0.05em] gallery-link">
             The Reiferson Collection
