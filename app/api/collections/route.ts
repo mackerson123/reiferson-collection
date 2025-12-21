@@ -3,7 +3,7 @@ import { loadCollectionsServer } from "../../../lib/server-data-loader";
 
 export async function GET() {
   try {
-    const collections = loadCollectionsServer();
+    const collections = await loadCollectionsServer();
     return NextResponse.json({ collections });
   } catch (error) {
     console.error("Error loading collections:", error);

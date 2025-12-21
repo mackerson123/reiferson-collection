@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -16,51 +15,56 @@ import {
 } from "../../components/ui/tabs";
 import { CollectionEditor } from "../../components/admin/collection-editor";
 import { WorkEditor } from "../../components/admin/work-editor";
+import { trpc } from "../../lib/trpc/client";
 import { Collection, Work } from "../../lib/types";
 
 export default function AdminPage() {
-  const [collections, setCollections] = useState<Collection[]>([]);
-  const [works, setWorks] = useState<Work[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: collectionsData, isLoading: collectionsLoading } =
+    trpc.collections.list.useQuery();
+  const { data: worksData, isLoading: worksLoading } =
+    trpc.works.list.useQuery();
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const utils = trpc.useUtils();
 
-  const loadData = async () => {
-    try {
-      const [collectionsRes, worksRes] = await Promise.all([
-        fetch("/api/collections"),
-        fetch("/api/works"),
-      ]);
+  const updateCollectionMutation = trpc.collections.update.useMutation({
+    onSuccess: () => {
+      utils.collections.list.invalidate();
+    },
+  });
 
-      const collectionsData = await collectionsRes.json();
-      const worksData = await worksRes.json();
+  const createWorkMutation = trpc.works.create.useMutation({
+    onSuccess: () => {
+      utils.works.list.invalidate();
+      utils.collections.list.invalidate();
+    },
+  });
 
-      setCollections(collectionsData.collections);
-      setWorks(worksData.works);
-    } catch (error) {
-      console.error("Error loading data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const updateWorkMutation = trpc.works.update.useMutation({
+    onSuccess: () => {
+      utils.works.list.invalidate();
+      utils.collections.list.invalidate();
+    },
+  });
+
+  const deleteWorkMutation = trpc.works.delete.useMutation({
+    onSuccess: () => {
+      utils.works.list.invalidate();
+      utils.collections.list.invalidate();
+    },
+  });
+
+  const collections = collectionsData?.collections || [];
+  const works = worksData?.works || [];
+  const loading = collectionsLoading || worksLoading;
 
   const handleCollectionUpdate = async (updatedCollection: Collection) => {
     try {
-      const response = await fetch("/api/admin/collections", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedCollection),
+      await updateCollectionMutation.mutateAsync({
+        id: updatedCollection.id,
+        name: updatedCollection.name,
+        description: updatedCollection.description,
+        curatorNote: updatedCollection.curatorNote,
       });
-
-      if (response.ok) {
-        setCollections((prev) =>
-          prev.map((c) =>
-            c.id === updatedCollection.id ? updatedCollection : c
-          )
-        );
-      }
     } catch (error) {
       console.error("Error updating collection:", error);
     }
@@ -68,17 +72,22 @@ export default function AdminPage() {
 
   const handleWorkUpdate = async (updatedWork: Work) => {
     try {
-      const response = await fetch("/api/admin/works", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedWork),
+      await updateWorkMutation.mutateAsync({
+        id: updatedWork.id,
+        title: updatedWork.title,
+        artist: updatedWork.artist,
+        date: updatedWork.date,
+        medium: updatedWork.medium,
+        dimensions: updatedWork.dimensions,
+        description: updatedWork.description,
+        narrative: updatedWork.narrative,
+        provenance: updatedWork.provenance,
+        exhibition: updatedWork.exhibition,
+        relatedObjects: updatedWork.relatedObjects,
+        imageUrl: updatedWork.imageUrl,
+        thumbnailUrl: updatedWork.thumbnailUrl,
+        collectionId: updatedWork.collectionId,
       });
-
-      if (response.ok) {
-        setWorks((prev) =>
-          prev.map((w) => (w.id === updatedWork.id ? updatedWork : w))
-        );
-      }
     } catch (error) {
       console.error("Error updating work:", error);
     }
@@ -86,16 +95,22 @@ export default function AdminPage() {
 
   const handleWorkCreate = async (newWork: Work) => {
     try {
-      const response = await fetch("/api/admin/works", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newWork),
+      await createWorkMutation.mutateAsync({
+        id: newWork.id,
+        title: newWork.title,
+        artist: newWork.artist,
+        date: newWork.date,
+        medium: newWork.medium,
+        dimensions: newWork.dimensions,
+        description: newWork.description,
+        narrative: newWork.narrative,
+        provenance: newWork.provenance,
+        exhibition: newWork.exhibition,
+        relatedObjects: newWork.relatedObjects,
+        imageUrl: newWork.imageUrl,
+        thumbnailUrl: newWork.thumbnailUrl,
+        collectionId: newWork.collectionId,
       });
-
-      if (response.ok) {
-        const createdWork = await response.json();
-        setWorks((prev) => [...prev, createdWork]);
-      }
     } catch (error) {
       console.error("Error creating work:", error);
     }
@@ -103,13 +118,7 @@ export default function AdminPage() {
 
   const handleWorkDelete = async (workId: string) => {
     try {
-      const response = await fetch(`/api/admin/works?id=${workId}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        setWorks((prev) => prev.filter((w) => w.id !== workId));
-      }
+      await deleteWorkMutation.mutateAsync({ id: workId });
     } catch (error) {
       console.error("Error deleting work:", error);
     }

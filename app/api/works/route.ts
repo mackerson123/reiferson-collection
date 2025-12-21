@@ -3,7 +3,7 @@ import { loadWorksServer } from "../../../lib/server-data-loader";
 
 export async function GET() {
   try {
-    const works = loadWorksServer();
+    const works = await loadWorksServer();
     return NextResponse.json({ works });
   } catch (error) {
     console.error("Error loading works:", error);

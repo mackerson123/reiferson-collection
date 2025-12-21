@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Work, Collection } from "../lib/types";
+import { trpc } from "../lib/trpc/client";
 
 interface GalleryViewProps {
   onImageClick: (index: number) => void;
@@ -12,16 +13,17 @@ export default function GalleryView({
   onImageClick,
   onWorksChange,
 }: GalleryViewProps) {
-  const [collections, setCollections] = useState<Collection[]>([]);
+  const { data: collectionsData, isLoading } = trpc.collections.list.useQuery();
   const [activeFilter, setActiveFilter] = useState<string>("");
   const [currentWorks, setCurrentWorks] = useState<Work[]>([]);
   const [currentCollection, setCurrentCollection] = useState(0);
   const [containerHeight, setContainerHeight] = useState(600);
-  const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isTabClickingRef = useRef(false);
+
+  const collections = collectionsData?.collections || [];
 
   const calculateRows = (height: number) => {
     const imageHeight = 130;
@@ -44,52 +46,21 @@ export default function GalleryView({
   };
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("/api/collections");
-        const data = await response.json();
+    if (collections.length > 0) {
+      setActiveFilter(collections[0]?.id || "");
+      const allWorks = collections.flatMap(
+        (collection: Collection) => collection.works
+      );
+      setCurrentWorks(allWorks);
+      setCurrentCollection(0);
 
-        setCollections(data.collections);
-        setActiveFilter(data.collections[0]?.id || "");
-
-        const allWorks = data.collections.flatMap(
-          (collection: Collection) => collection.works
-        );
-        setCurrentWorks(allWorks);
-        setCurrentCollection(0);
-
-        // Call onWorksChange only once during initialization
-        if (onWorksChange) {
-          onWorksChange(allWorks);
-        }
-      } catch (error) {
-        console.error("Error loading collections:", error);
-        // Fallback to original data if API fails
-        try {
-          const {
-            collections: fallbackCollections,
-            getAllWorks: fallbackGetAllWorks,
-          } = await import("../data/collections");
-          setCollections(fallbackCollections);
-          setActiveFilter(fallbackCollections[0]?.id || "");
-
-          const allWorks = fallbackGetAllWorks();
-          setCurrentWorks(allWorks);
-          setCurrentCollection(0);
-
-          if (onWorksChange) {
-            onWorksChange(allWorks);
-          }
-        } catch (fallbackError) {
-          console.error("Fallback also failed:", fallbackError);
-        }
-      } finally {
-        setLoading(false);
+      if (onWorksChange) {
+        onWorksChange(allWorks);
       }
-    };
+    }
+  }, [collections, onWorksChange]);
 
-    // Check if mobile on mount and on resize
+  useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
@@ -97,12 +68,10 @@ export default function GalleryView({
     checkMobile();
     window.addEventListener("resize", checkMobile);
 
-    loadData();
-
     return () => {
       window.removeEventListener("resize", checkMobile);
     };
-  }, []); // Empty dependency array - only run once on mount
+  }, []);
 
   const handleScroll = useCallback(() => {
     if (!scrollContainerRef.current || isTabClickingRef.current) return;
@@ -225,7 +194,7 @@ export default function GalleryView({
     );
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex flex-col flex-1 min-h-0 items-center justify-center">
         <p>Loading collections...</p>

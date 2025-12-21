@@ -31,9 +31,13 @@ export function ImageUpload({
       const formData = new FormData();
       formData.append("file", file);
 
+      const adminPassword = localStorage.getItem("admin-password") || "";
       const response = await fetch("/api/admin/upload", {
         method: "POST",
         body: formData,
+        headers: {
+          "x-admin-password": adminPassword,
+        },
       });
 
       if (response.ok) {

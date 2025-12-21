@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFileSync } from "fs";
-import { join } from "path";
+import { put } from "@vercel/blob";
 
 export async function POST(request: NextRequest) {
   try {
+    const adminPassword = request.headers.get("x-admin-password");
+    const expectedPassword = process.env.ADMIN_PASSWORD;
+
+    if (!expectedPassword || adminPassword !== expectedPassword) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const formData = await request.formData();
     const file = formData.get("file") as File;
 
@@ -11,23 +17,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const blob = await put(file.name, file, {
+      access: "public",
+    });
 
-    // Generate filename
-    const timestamp = Date.now();
-    const fileExtension = file.name.split(".").pop();
-    const filename = `uploaded-${timestamp}.${fileExtension}`;
-
-    // Save to public directory
-    const filepath = join(process.cwd(), "public", filename);
-    writeFileSync(filepath, buffer);
-
-    // Return the public URL
-    const imageUrl = `/${filename}`;
-
-    return NextResponse.json({ imageUrl });
+    return NextResponse.json({ imageUrl: blob.url });
   } catch (error) {
     console.error("Error uploading file:", error);
     return NextResponse.json(
