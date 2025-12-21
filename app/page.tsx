@@ -53,7 +53,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#F1EFE7] text-black font-sans flex flex-col">
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-[#F1EFE7] flex justify-between items-center p-6 md:p-8">
+      <nav className="sticky top-0 z-50 bg-[#F1EFE7] flex justify-between items-center p-4">
         <Link href="/">
           <h1 className="text-[18px] md:text-subheading font-semibold tracking-[0.05em] gallery-link">
             The Reiferson Collection
@@ -90,7 +90,7 @@ export default function HomePage() {
         <div className="fixed inset-0 z-[60] bg-[#F1EFE7] flex flex-col items-center justify-center">
           <button
             onClick={() => setMobileMenuOpen(false)}
-            className="absolute top-8 right-8 text-black text-2xl z-10 gallery-link"
+            className="absolute top-4 right-4 text-black text-2xl z-10 gallery-link"
           >
             ×
           </button>
