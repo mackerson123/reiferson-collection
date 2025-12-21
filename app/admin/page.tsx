@@ -2,6 +2,7 @@
 
 import { CollectionEditor } from "../../components/admin/collection-editor";
 import { WorkEditor } from "../../components/admin/work-editor";
+import { SettingsEditor } from "../../components/admin/settings-editor";
 import { trpc } from "../../lib/trpc/client";
 import { Collection, Work } from "../../lib/types";
 import { useState } from "react";
@@ -16,9 +17,9 @@ import {
 import { Button } from "../../components/ui/button";
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<"collections" | "works">(
-    "collections"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "collections" | "works" | "settings"
+  >("collections");
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
   const [collectionToPublish, setCollectionToPublish] = useState<string | null>(
     null
@@ -27,6 +28,8 @@ export default function AdminPage() {
     trpc.collections.list.useQuery();
   const { data: worksData, isLoading: worksLoading } =
     trpc.works.list.useQuery();
+  const { data: settingsData, isLoading: settingsLoading } =
+    trpc.settings.get.useQuery();
 
   const utils = trpc.useUtils();
 
@@ -91,9 +94,16 @@ export default function AdminPage() {
       },
     });
 
+  const updateSettingsMutation = trpc.settings.update.useMutation({
+    onSuccess: () => {
+      utils.settings.get.invalidate();
+    },
+  });
+
   const collections = collectionsData?.collections || [];
   const works = worksData?.works || [];
-  const loading = collectionsLoading || worksLoading;
+  const settings = settingsData;
+  const loading = collectionsLoading || worksLoading || settingsLoading;
 
   const publishedCollections = collections.filter(
     (c) => c.isPublished !== false
@@ -205,6 +215,13 @@ export default function AdminPage() {
     await updateCollectionOrderMutation.mutateAsync({ collectionIds });
   };
 
+  const handleSettingsUpdate = async (updatedSettings: {
+    aboutTitle: string;
+    aboutContent: string;
+  }) => {
+    await updateSettingsMutation.mutateAsync(updatedSettings);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -294,6 +311,20 @@ export default function AdminPage() {
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black"></div>
             )}
           </button>
+
+          <button
+            onClick={() => setActiveTab("settings")}
+            className={`py-4 text-navigation tracking-[0.05em] font-medium whitespace-nowrap relative admin-filter-pill ${
+              activeTab === "settings"
+                ? "text-black"
+                : "text-black/60 hover:text-black/80"
+            }`}
+          >
+            Settings
+            {activeTab === "settings" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black"></div>
+            )}
+          </button>
         </div>
       </div>
 
@@ -307,7 +338,7 @@ export default function AdminPage() {
             onTogglePublish={handleCollectionTogglePublish}
             onUpdateOrder={handleCollectionOrderUpdate}
           />
-        ) : (
+        ) : activeTab === "works" ? (
           <WorkEditor
             works={works}
             collections={collections}
@@ -316,7 +347,9 @@ export default function AdminPage() {
             onDelete={handleWorkDelete}
             onTogglePublish={handleWorkTogglePublish}
           />
-        )}
+        ) : settings ? (
+          <SettingsEditor settings={settings} onUpdate={handleSettingsUpdate} />
+        ) : null}
       </div>
 
       <Dialog

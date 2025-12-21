@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { trpc } from "../../lib/trpc/client";
 
 export default function AboutPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { data: settings, isLoading } = trpc.settings.get.useQuery();
 
   return (
     <div className="min-h-screen bg-[#F1EFE7] text-black font-sans flex flex-col">
@@ -60,39 +62,31 @@ export default function AboutPage() {
       )}
 
       <main className="flex-1 px-4 md:px-32 lg:px-40 max-w-4xl mx-auto py-8">
-        <div className="space-y-8 md:space-y-12">
-          <h1 className="text-heading font-semibold tracking-[0.05em]">
-            The Reiferson Collection
-          </h1>
-          <div className="space-y-6 leading-relaxed text-body">
-            <p>
-              The Reiferson Collection represents one of the most comprehensive
-              archives of vintage baseball photography, documenting the
-              evolution of America's pastime from the late 19th century through
-              the integration era.
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <p className="text-navigation tracking-[0.05em] opacity-60">
+              Loading...
             </p>
-            <p>
-              This collection focuses particularly on the often-overlooked
-              stories of the color line in baseball, featuring rare photographs
-              and documents that chronicle both the segregation and eventual
-              integration of professional baseball.
-            </p>
-            <p>
-              From the pioneering work of photographers like Charles M. Conlon
-              to the intimate documentation of Negro League players and the
-              historic moments surrounding Jackie Robinson's breakthrough, these
-              images preserve crucial moments in both sports and civil rights
-              history.
-            </p>
-            <Link
-              href="/"
-              className="text-small md:text-small tracking-[0.05em] font-medium gallery-link"
-            >
-              ← <span className="hidden sm:inline">Back to collection</span>
-              <span className="sm:hidden">Back</span>
-            </Link>
           </div>
-        </div>
+        ) : (
+          <div className="space-y-8 md:space-y-12">
+            <h1 className="text-heading font-semibold tracking-[0.05em]">
+              {settings?.aboutTitle || "The Reiferson Collection"}
+            </h1>
+            <div className="space-y-6 leading-relaxed text-body">
+              {settings?.aboutContent.split("\n\n").map((paragraph, index) => (
+                <p key={index}>{paragraph}</p>
+              ))}
+              <Link
+                href="/"
+                className="text-small md:text-small tracking-[0.05em] font-medium gallery-link"
+              >
+                ← <span className="hidden sm:inline">Back to collection</span>
+                <span className="sm:hidden">Back</span>
+              </Link>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

@@ -37,7 +37,16 @@ export const works = pgTable("works", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const settings = pgTable("settings", {
+  id: text("id").primaryKey(),
+  aboutTitle: text("about_title").notNull(),
+  aboutContent: text("about_content").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export type Collection = typeof collections.$inferSelect;
 export type NewCollection = typeof collections.$inferInsert;
 export type Work = typeof works.$inferSelect;
 export type NewWork = typeof works.$inferInsert;
+export type Settings = typeof settings.$inferSelect;
+export type NewSettings = typeof settings.$inferInsert;

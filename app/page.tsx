@@ -5,23 +5,7 @@ import Link from "next/link";
 import GalleryView from "../components/gallery-view";
 import ImageDetailView from "../components/image-detail-view";
 import { Work } from "../lib/types";
-
-// Mock data for now - this should come from a data file or API
-const collections = [
-  {
-    id: "color-line",
-    name: "The color line",
-    count: 35,
-    images: [
-      "/vintage-catcher-photograph-1.jpg",
-      "/vintage-syracuse-stars-1887.jpg",
-      "/vintage-wheeling-team-photograph.jpg",
-      "/weldy-walker-discrimination-appeal-1887.jpeg",
-      // ... more images
-    ],
-  },
-  // ... other collections
-];
+import { trpc } from "../lib/trpc/client";
 
 export default function HomePage() {
   const [currentView, setCurrentView] = useState<"work" | "image">("work");
@@ -30,6 +14,8 @@ export default function HomePage() {
     null
   );
   const [currentWorks, setCurrentWorks] = useState<Work[]>([]);
+
+  trpc.settings.get.useQuery();
 
   const handleImageClick = (index: number) => {
     setSelectedImageIndex(index);

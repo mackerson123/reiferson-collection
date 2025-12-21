@@ -79,12 +79,6 @@ export default function GalleryView({
     [containerHeight, isMobile]
   );
 
-  // Legacy helpers for backward compatibility
-  const calculateRows = (height: number) =>
-    calculateOptimalLayout(height, false).rows;
-  const calculateMobileRows = (height: number) =>
-    calculateOptimalLayout(height, true).rows;
-
   useEffect(() => {
     if (collections.length > 0) {
       const allWorks = collections.flatMap(
