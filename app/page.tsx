@@ -53,7 +53,7 @@ export default function HomePage() {
   return (
     <div className="h-dvh bg-[#F1EFE7] text-black font-sans flex flex-col overflow-hidden">
       {/* Navigation */}
-      <nav className="flex-shrink-0 bg-[#F1EFE7] flex justify-between items-center p-4">
+      <nav className="flex-shrink-0 bg-[#F1EFE7] flex justify-between items-center px-4 py-4 md:px-8">
         <Link href="/">
           <h1 className="text-[18px] md:text-subheading font-semibold tracking-[0.05em] gallery-link">
             The Reiferson Collection
@@ -88,7 +88,7 @@ export default function HomePage() {
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-[60] bg-[#F1EFE7] flex flex-col">
-          <div className="flex-shrink-0 flex justify-between items-center p-4">
+          <div className="flex-shrink-0 flex justify-between items-center px-4 py-4 md:px-8">
             <span className="text-[18px] font-semibold tracking-[0.05em]">
               The Reiferson Collection
             </span>
