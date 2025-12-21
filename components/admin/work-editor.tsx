@@ -12,10 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Label } from "../ui/label";
 import { Trash2, Plus, Edit3 } from "lucide-react";
 import { ImageUpload } from "./image-upload";
+import { AdminItemCard } from "./admin-item-card";
 
 interface WorkEditorProps {
   works: Work[];
@@ -107,25 +107,28 @@ export function WorkEditor({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-xl font-semibold">Manage Works</h3>
-        <Button onClick={startCreating} disabled={showCreateForm}>
-          <Plus className="w-4 h-4 mr-2" />
+        <button
+          onClick={startCreating}
+          disabled={showCreateForm}
+          className="bg-black text-white px-4 py-2 text-navigation tracking-[0.05em] font-medium hover:opacity-80 transition-opacity rounded-sm disabled:opacity-40 flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+        >
+          <Plus className="w-4 h-4" />
           Add New Work
-        </Button>
+        </button>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-4 items-center bg-white p-4 rounded-lg border">
+      <div className="bg-white border border-black/10 rounded-sm p-4 flex gap-4 items-center">
         <div className="flex-1">
           <Input
             placeholder="Search works by title, artist, or description..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="bg-white border-black/10 text-navigation tracking-[0.05em]"
           />
         </div>
         <div className="min-w-[200px]">
           <Select value={filterCollection} onValueChange={setFilterCollection}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-white border-black/10 text-navigation tracking-[0.05em]">
               <SelectValue placeholder="Filter by collection" />
             </SelectTrigger>
             <SelectContent>
@@ -140,110 +143,103 @@ export function WorkEditor({
         </div>
       </div>
 
-      {/* Create Form */}
       {showCreateForm && (
-        <Card className="border-green-200">
-          <CardHeader>
-            <CardTitle className="text-green-700">Create New Work</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <WorkForm
-              formData={formData}
-              collections={collections}
-              onUpdateField={updateField}
-              onSave={saveChanges}
-              onCancel={cancelEditing}
-              isCreate={true}
-            />
-          </CardContent>
-        </Card>
+        <div className="bg-white border-2 border-black/20 rounded-sm p-6">
+          <h3 className="text-navigation font-semibold tracking-[0.05em] mb-4">
+            Create New Work
+          </h3>
+          <WorkForm
+            formData={formData}
+            collections={collections}
+            onUpdateField={updateField}
+            onSave={saveChanges}
+            onCancel={cancelEditing}
+            isCreate={true}
+          />
+        </div>
       )}
 
-      {/* Works List */}
       <div className="space-y-4">
-        <p className="text-sm text-gray-600">
+        <p className="text-utility tracking-[0.05em] opacity-60">
           Showing {filteredWorks.length} of {works.length} works
         </p>
 
         {filteredWorks.map((work) => (
-          <Card key={work.id} className="relative">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-lg">{work.title}</CardTitle>
-                  <p className="text-sm text-gray-600">
-                    {work.artist} • {getCollectionName(work.collectionId)}
-                  </p>
+          <AdminItemCard
+            key={work.id}
+            title={work.title}
+            subtitle={`${work.artist || "Unknown Artist"} • ${getCollectionName(
+              work.collectionId
+            )}`}
+            isEditing={editingId === work.id}
+            onEdit={() => startEditing(work)}
+            onDelete={() => handleDelete(work.id)}
+            editForm={
+              <WorkForm
+                formData={formData}
+                collections={collections}
+                onUpdateField={updateField}
+                onSave={saveChanges}
+                onCancel={cancelEditing}
+                isCreate={false}
+              />
+            }
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <div className="text-utility tracking-[0.05em] opacity-60 mb-1">
+                  Image
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => startEditing(work)}
-                    disabled={editingId === work.id}
-                    variant="outline"
-                    size="sm"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    onClick={() => handleDelete(work.id)}
-                    variant="outline"
-                    size="sm"
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                {work.imageUrl ? (
+                  <img
+                    src={work.imageUrl}
+                    alt={work.title}
+                    className="w-20 h-20 object-cover rounded-sm border border-black/10"
+                  />
+                ) : (
+                  <div className="w-20 h-20 bg-black/5 rounded-sm border border-black/10 flex items-center justify-center text-xs opacity-40">
+                    No image
+                  </div>
+                )}
+              </div>
+              <div>
+                <div className="text-utility tracking-[0.05em] opacity-60 mb-1">
+                  Details
+                </div>
+                <div className="text-sm text-navigation tracking-[0.05em]">
+                  {work.date && <div>Date: {work.date}</div>}
+                  {work.medium && <div>Medium: {work.medium}</div>}
+                  {work.dimensions && <div>Dimensions: {work.dimensions}</div>}
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
-              {editingId === work.id ? (
-                <WorkForm
-                  formData={formData}
-                  collections={collections}
-                  onUpdateField={updateField}
-                  onSave={saveChanges}
-                  onCancel={cancelEditing}
-                  isCreate={false}
-                />
-              ) : (
-                <div className="space-y-3">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <strong>Date:</strong> {work.date}
-                    </div>
-                    <div>
-                      <strong>Medium:</strong> {work.medium}
-                    </div>
-                    <div>
-                      <strong>Dimensions:</strong> {work.dimensions}
-                    </div>
-                    <div>
-                      <strong>Image URL:</strong>
-                      <span className="text-xs text-gray-600 block truncate">
-                        {work.imageUrl}
-                      </span>
-                    </div>
-                  </div>
+            </div>
 
-                  {work.description && (
-                    <div>
-                      <strong>Description:</strong>
-                      <p className="text-gray-700 mt-1">{work.description}</p>
-                    </div>
-                  )}
-
-                  {work.narrative && (
-                    <div>
-                      <strong>Narrative:</strong>
-                      <p className="text-gray-700 mt-1">{work.narrative}</p>
-                    </div>
-                  )}
-
-                  <div className="text-xs text-gray-500">ID: {work.id}</div>
+            {work.description && (
+              <div>
+                <div className="text-utility tracking-[0.05em] opacity-60 mb-1">
+                  Description
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                <p className="text-navigation tracking-[0.05em]">
+                  {work.description}
+                </p>
+              </div>
+            )}
+
+            {work.narrative && (
+              <div>
+                <div className="text-utility tracking-[0.05em] opacity-60 mb-1">
+                  Narrative
+                </div>
+                <p className="text-navigation tracking-[0.05em]">
+                  {work.narrative}
+                </p>
+              </div>
+            )}
+
+            <div className="text-utility tracking-[0.05em] opacity-40 pt-2">
+              ID: {work.id}
+            </div>
+          </AdminItemCard>
         ))}
       </div>
     </div>
@@ -271,63 +267,75 @@ function WorkForm({
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="title">Title *</Label>
+          <Label className="text-utility tracking-[0.05em] opacity-60 mb-1 block">
+            Title *
+          </Label>
           <Input
-            id="title"
             value={formData.title || ""}
             onChange={(e) => onUpdateField("title", e.target.value)}
             placeholder="Work title"
             required
+            className="bg-white border-black/10 text-navigation tracking-[0.05em]"
           />
         </div>
 
         <div>
-          <Label htmlFor="artist">Artist</Label>
+          <Label className="text-utility tracking-[0.05em] opacity-60 mb-1 block">
+            Artist
+          </Label>
           <Input
-            id="artist"
             value={formData.artist || ""}
             onChange={(e) => onUpdateField("artist", e.target.value)}
             placeholder="Artist name"
+            className="bg-white border-black/10 text-navigation tracking-[0.05em]"
           />
         </div>
 
         <div>
-          <Label htmlFor="date">Date</Label>
+          <Label className="text-utility tracking-[0.05em] opacity-60 mb-1 block">
+            Date
+          </Label>
           <Input
-            id="date"
             value={formData.date || ""}
             onChange={(e) => onUpdateField("date", e.target.value)}
             placeholder="e.g. c. 1920s"
+            className="bg-white border-black/10 text-navigation tracking-[0.05em]"
           />
         </div>
 
         <div>
-          <Label htmlFor="medium">Medium</Label>
+          <Label className="text-utility tracking-[0.05em] opacity-60 mb-1 block">
+            Medium
+          </Label>
           <Input
-            id="medium"
             value={formData.medium || ""}
             onChange={(e) => onUpdateField("medium", e.target.value)}
             placeholder="e.g. Gelatin silver print"
+            className="bg-white border-black/10 text-navigation tracking-[0.05em]"
           />
         </div>
 
         <div>
-          <Label htmlFor="dimensions">Dimensions</Label>
+          <Label className="text-utility tracking-[0.05em] opacity-60 mb-1 block">
+            Dimensions
+          </Label>
           <Input
-            id="dimensions"
             value={formData.dimensions || ""}
             onChange={(e) => onUpdateField("dimensions", e.target.value)}
             placeholder="e.g. 8 x 10 in."
+            className="bg-white border-black/10 text-navigation tracking-[0.05em]"
           />
         </div>
 
         <div>
-          <Label htmlFor="collection">Collection *</Label>
+          <Label className="text-utility tracking-[0.05em] opacity-60 mb-1 block">
+            Collection *
+          </Label>
           <Select
             value={formData.collectionId || ""}
             onValueChange={(value) => onUpdateField("collectionId", value)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="bg-white border-black/10 text-navigation tracking-[0.05em]">
               <SelectValue placeholder="Select collection" />
             </SelectTrigger>
             <SelectContent>
@@ -348,58 +356,72 @@ function WorkForm({
       />
 
       <div>
-        <Label htmlFor="description">Description</Label>
+        <Label className="text-utility tracking-[0.05em] opacity-60 mb-1 block">
+          Description
+        </Label>
         <Textarea
-          id="description"
           value={formData.description || ""}
           onChange={(e) => onUpdateField("description", e.target.value)}
           placeholder="Brief description of the work"
           rows={3}
+          className="bg-white border-black/10 text-navigation tracking-[0.05em]"
         />
       </div>
 
       <div>
-        <Label htmlFor="narrative">Narrative</Label>
+        <Label className="text-utility tracking-[0.05em] opacity-60 mb-1 block">
+          Narrative
+        </Label>
         <Textarea
-          id="narrative"
           value={formData.narrative || ""}
           onChange={(e) => onUpdateField("narrative", e.target.value)}
           placeholder="Detailed story or context about the work"
           rows={4}
+          className="bg-white border-black/10 text-navigation tracking-[0.05em]"
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="provenance">Provenance</Label>
+          <Label className="text-utility tracking-[0.05em] opacity-60 mb-1 block">
+            Provenance
+          </Label>
           <Textarea
-            id="provenance"
             value={formData.provenance || ""}
             onChange={(e) => onUpdateField("provenance", e.target.value)}
             placeholder="Origin and ownership history"
             rows={2}
+            className="bg-white border-black/10 text-navigation tracking-[0.05em]"
           />
         </div>
 
         <div>
-          <Label htmlFor="exhibition">Exhibition</Label>
+          <Label className="text-utility tracking-[0.05em] opacity-60 mb-1 block">
+            Exhibition
+          </Label>
           <Textarea
-            id="exhibition"
             value={formData.exhibition || ""}
             onChange={(e) => onUpdateField("exhibition", e.target.value)}
             placeholder="Exhibition history"
             rows={2}
+            className="bg-white border-black/10 text-navigation tracking-[0.05em]"
           />
         </div>
       </div>
 
       <div className="flex gap-2 pt-4">
-        <Button onClick={onSave}>
+        <button
+          onClick={onSave}
+          className="bg-black text-white px-4 py-2 text-navigation tracking-[0.05em] font-medium hover:opacity-80 transition-opacity rounded-sm cursor-pointer"
+        >
           {isCreate ? "Create Work" : "Save Changes"}
-        </Button>
-        <Button onClick={onCancel} variant="outline">
+        </button>
+        <button
+          onClick={onCancel}
+          className="border border-black/10 px-4 py-2 text-navigation tracking-[0.05em] font-medium hover:opacity-60 transition-opacity rounded-sm cursor-pointer"
+        >
           Cancel
-        </Button>
+        </button>
       </div>
     </div>
   );

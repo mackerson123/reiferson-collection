@@ -68,17 +68,19 @@ export default function HomePage() {
     <div className="min-h-screen bg-[#F1EFE7] text-black font-sans flex flex-col">
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-[#F1EFE7] flex justify-between items-center p-6 md:p-8">
-        <h1
-          className="text-site-name font-semibold tracking-[0.05em]"
-          style={{ fontSize: "1.2em" }}
-        >
-          The Reiferson Collection
-        </h1>
+        <Link href="/">
+          <h1
+            className="text-site-name font-semibold tracking-[0.05em] hover:opacity-80 transition-opacity cursor-pointer"
+            style={{ fontSize: "1.2em" }}
+          >
+            The Reiferson Collection
+          </h1>
+        </Link>
 
         <div className="hidden md:flex gap-6">
           <button
             onClick={() => setCurrentView("work")}
-            className={`text-navigation tracking-[0.05em] font-medium hover:opacity-60 ${
+            className={`text-navigation tracking-[0.05em] font-medium hover:opacity-60 cursor-pointer ${
               currentView === "work" ? "opacity-80" : "opacity-60"
             }`}
           >
@@ -86,7 +88,7 @@ export default function HomePage() {
           </button>
           <Link
             href="/about"
-            className="text-navigation tracking-[0.05em] font-medium hover:opacity-60 opacity-60"
+            className="text-navigation tracking-[0.05em] font-medium hover:opacity-60 opacity-60 cursor-pointer"
           >
             About
           </Link>
@@ -94,7 +96,7 @@ export default function HomePage() {
 
         <button
           onClick={() => setMobileMenuOpen(true)}
-          className="md:hidden text-navigation tracking-[0.05em] font-medium"
+          className="md:hidden text-navigation tracking-[0.05em] font-medium cursor-pointer"
         >
           Menu
         </button>
@@ -102,26 +104,26 @@ export default function HomePage() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-60 bg-[#F1EFE7] flex flex-col items-center justify-center">
+        <div className="fixed inset-0 z-[60] bg-[#F1EFE7] flex flex-col items-center justify-center">
           <button
             onClick={() => setMobileMenuOpen(false)}
-            className="absolute top-8 right-8 text-black text-2xl hover:opacity-60 z-10"
+            className="absolute top-8 right-8 text-black text-2xl hover:opacity-60 z-10 cursor-pointer"
           >
             ×
           </button>
-          <div className="space-y-6">
+          <div className="space-y-6 text-center">
             <button
               onClick={() => {
                 setCurrentView("work");
                 setMobileMenuOpen(false);
               }}
-              className="block text-content-subtitle tracking-[0.05em] font-medium hover:opacity-60"
+              className="block text-content-subtitle tracking-[0.05em] font-medium hover:opacity-60 w-full cursor-pointer"
             >
               Work
             </button>
             <Link
               href="/about"
-              className="block text-content-subtitle tracking-[0.05em] font-medium hover:opacity-60"
+              className="block text-content-subtitle tracking-[0.05em] font-medium hover:opacity-60 w-full cursor-pointer"
               onClick={() => setMobileMenuOpen(false)}
             >
               About

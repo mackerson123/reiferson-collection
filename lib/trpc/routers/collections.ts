@@ -91,4 +91,23 @@ export const collectionsRouter = router({
 
       return updated;
     }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input }) => {
+      // First, delete all works associated with this collection
+      await db.delete(works).where(eq(works.collectionId, input.id));
+
+      // Then delete the collection
+      const [deleted] = await db
+        .delete(collections)
+        .where(eq(collections.id, input.id))
+        .returning();
+
+      if (!deleted) {
+        throw new Error("Collection not found");
+      }
+
+      return { success: true };
+    }),
 });

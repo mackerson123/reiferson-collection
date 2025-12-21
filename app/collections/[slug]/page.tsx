@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowLeft } from "lucide-react"
@@ -162,10 +163,13 @@ export default function CollectionPage({ params }: CollectionPageProps) {
       <section className="pt-20">
         <div className="relative">
           <div className="aspect-[1.618/1] relative overflow-hidden">
-            <img
+            <Image
               src={collection.hero || "/placeholder.svg"}
               alt={collection.title}
-              className="w-full h-full object-cover"
+              fill
+              sizes="100vw"
+              className="object-cover"
+              priority
             />
             <div className="absolute inset-0 bg-black/40"></div>
             <div className="absolute inset-0 flex items-center justify-center">
@@ -201,10 +205,13 @@ export default function CollectionPage({ params }: CollectionPageProps) {
                 <Card className="overflow-hidden shadow-lg">
                   <CardContent className="p-0">
                     <div className="aspect-[1.618/1] relative">
-                      <img
+                      <Image
                         src={photo.image || "/placeholder.svg"}
                         alt={photo.title}
-                        className="w-full h-full object-cover"
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 62.5vw"
+                        className="object-cover"
+                        loading="lazy"
                       />
                     </div>
                   </CardContent>
@@ -239,10 +246,13 @@ export default function CollectionPage({ params }: CollectionPageProps) {
                   <a href={`/collections/${slug}`}>
                     <CardContent className="p-0">
                       <div className="aspect-[1.618/1] relative overflow-hidden">
-                        <img
+                        <Image
                           src={otherCollection.hero || "/placeholder.svg"}
                           alt={otherCollection.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          fill
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          loading="lazy"
                         />
                         <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors"></div>
                         <div className="absolute bottom-0 left-0 right-0 p-6 text-white">

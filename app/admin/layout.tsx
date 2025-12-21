@@ -3,12 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/card";
+import Link from "next/link";
 import { TRPCProvider } from "../../components/providers/trpc-provider";
 
 interface AdminLayoutProps {
@@ -51,44 +46,20 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     setPassword("");
   };
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-[#F1EFE7] flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-center">Admin Access</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <Input
-                  type="password"
-                  placeholder="Enter admin password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              {error && <p className="text-red-600 text-sm">{error}</p>}
-              <Button type="submit" className="w-full">
-                Login
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <TRPCProvider adminPassword={storedPassword}>
       {!isAuthenticated ? (
-        <div className="min-h-screen bg-[#F1EFE7] flex items-center justify-center p-4">
-          <Card className="w-full max-w-md">
-            <CardHeader>
-              <CardTitle className="text-center">Admin Access</CardTitle>
-            </CardHeader>
-            <CardContent>
+        <div className="min-h-screen bg-[#F1EFE7] text-black font-sans flex flex-col items-center justify-center p-4">
+          <div className="w-full max-w-md">
+            <h1 className="text-site-name font-semibold tracking-[0.05em] text-center mb-12">
+              The Reiferson Collection
+            </h1>
+
+            <div className="bg-white border border-black/10 rounded-sm p-8">
+              <h2 className="text-navigation tracking-[0.05em] font-medium text-center mb-6 opacity-80">
+                Admin Access
+              </h2>
+
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
                   <Input
@@ -96,28 +67,59 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     placeholder="Enter admin password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full"
+                    className="w-full bg-white border-black/10 text-black placeholder:text-black/40 tracking-[0.05em]"
                   />
                 </div>
-                {error && <p className="text-red-600 text-sm">{error}</p>}
-                <Button type="submit" className="w-full">
+
+                {error && (
+                  <p className="text-navigation tracking-[0.05em] opacity-60 text-center">
+                    {error}
+                  </p>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full bg-black text-white hover:opacity-80 transition-opacity tracking-[0.05em] font-medium"
+                >
                   Login
                 </Button>
               </form>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       ) : (
-        <div className="min-h-screen bg-[#F1EFE7]">
-          <header className="bg-white border-b border-black/10 px-6 py-4">
-            <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-bold">Collection Admin</h1>
-              <Button onClick={handleLogout} variant="outline">
-                Logout
-              </Button>
+        <div className="min-h-screen bg-[#F1EFE7] text-black font-sans">
+          <nav className="sticky top-0 z-50 bg-[#F1EFE7] border-b border-black/10">
+            <div className="flex justify-between items-center p-6 md:p-8">
+              <div className="flex items-center gap-4">
+                <Link href="/">
+                  <h1 className="text-site-name font-semibold tracking-[0.05em] cursor-pointer">
+                    The Reiferson Collection
+                  </h1>
+                </Link>
+                <span className="text-utility tracking-[0.05em] opacity-60">
+                  / Admin
+                </span>
+              </div>
+
+              <div className="flex gap-6 items-center">
+                <Link
+                  href="/"
+                  className="text-navigation tracking-[0.05em] font-medium hover:opacity-60 opacity-60 cursor-pointer"
+                >
+                  View Site
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="text-navigation tracking-[0.05em] font-medium hover:opacity-60 opacity-60 cursor-pointer"
+                >
+                  Logout
+                </button>
+              </div>
             </div>
-          </header>
-          <main className="p-6">{children}</main>
+          </nav>
+
+          <main className="p-6 md:p-8">{children}</main>
         </div>
       )}
     </TRPCProvider>

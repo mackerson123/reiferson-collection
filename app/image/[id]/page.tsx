@@ -1,6 +1,7 @@
 "use client"
 
 import { useParams, useRouter } from "next/navigation"
+import Image from "next/image"
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react"
 import { useState, useEffect } from "react"
 
@@ -89,12 +90,15 @@ export default function ImagePage() {
       </button>
 
       {/* Main Image - Enlarged to fill almost entire page */}
-      <div className="absolute inset-0 flex items-center justify-center p-2">
-        <img
+      <div className="absolute inset-2 flex items-center justify-center">
+        <Image
           src={imageData.src || "/placeholder.svg"}
           alt={imageData.alt}
-          className="w-full h-full object-contain"
-          style={{ maxWidth: "98vw", maxHeight: "98vh" }}
+          fill
+          sizes="98vw"
+          className="object-contain"
+          priority
+          quality={85}
         />
       </div>
 

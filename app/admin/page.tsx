@@ -1,24 +1,13 @@
 "use client";
 
-import { Button } from "../../components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/card";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "../../components/ui/tabs";
 import { CollectionEditor } from "../../components/admin/collection-editor";
 import { WorkEditor } from "../../components/admin/work-editor";
 import { trpc } from "../../lib/trpc/client";
 import { Collection, Work } from "../../lib/types";
+import { useState } from "react";
 
 export default function AdminPage() {
+  const [activeTab, setActiveTab] = useState<"collections" | "works">("collections");
   const { data: collectionsData, isLoading: collectionsLoading } =
     trpc.collections.list.useQuery();
   const { data: worksData, isLoading: worksLoading } =
@@ -29,6 +18,13 @@ export default function AdminPage() {
   const updateCollectionMutation = trpc.collections.update.useMutation({
     onSuccess: () => {
       utils.collections.list.invalidate();
+    },
+  });
+
+  const deleteCollectionMutation = trpc.collections.delete.useMutation({
+    onSuccess: () => {
+      utils.collections.list.invalidate();
+      utils.works.list.invalidate();
     },
   });
 
@@ -67,6 +63,15 @@ export default function AdminPage() {
       });
     } catch (error) {
       console.error("Error updating collection:", error);
+    }
+  };
+
+  const handleCollectionDelete = async (collectionId: string) => {
+    try {
+      await deleteCollectionMutation.mutateAsync({ id: collectionId });
+    } catch (error) {
+      console.error("Error deleting collection:", error);
+      alert("Failed to delete collection. Please try again.");
     }
   };
 
@@ -127,55 +132,73 @@ export default function AdminPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p>Loading...</p>
+        <p className="text-navigation tracking-[0.05em] opacity-60">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold">Collection Management</h2>
-        <div className="flex gap-2">
-          <Button onClick={() => window.open("/", "_blank")} variant="outline">
-            Preview Site
-          </Button>
+    <div className="max-w-6xl mx-auto space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white border border-black/10 rounded-sm p-6">
+          <div className="text-utility tracking-[0.05em] opacity-60 mb-2">
+            Collections
+          </div>
+          <div className="text-content-title font-semibold">
+            {collections.length}
+          </div>
+        </div>
+        
+        <div className="bg-white border border-black/10 rounded-sm p-6">
+          <div className="text-utility tracking-[0.05em] opacity-60 mb-2">
+            Total Works
+          </div>
+          <div className="text-content-title font-semibold">
+            {works.length}
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Collections</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{collections.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Works</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{works.length}</p>
-          </CardContent>
-        </Card>
+      <div className="border-b border-black/10">
+        <div className="flex gap-6 overflow-x-auto scrollbar-hide">
+          <button
+            onClick={() => setActiveTab("collections")}
+            className={`py-4 text-navigation tracking-[0.05em] font-medium whitespace-nowrap relative transition-colors cursor-pointer ${
+              activeTab === "collections"
+                ? "text-black"
+                : "text-black/60 hover:text-black/80"
+            }`}
+          >
+            Collections ({collections.length})
+            {activeTab === "collections" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black"></div>
+            )}
+          </button>
+          
+          <button
+            onClick={() => setActiveTab("works")}
+            className={`py-4 text-navigation tracking-[0.05em] font-medium whitespace-nowrap relative transition-colors cursor-pointer ${
+              activeTab === "works"
+                ? "text-black"
+                : "text-black/60 hover:text-black/80"
+            }`}
+          >
+            Works ({works.length})
+            {activeTab === "works" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black"></div>
+            )}
+          </button>
+        </div>
       </div>
 
-      <Tabs defaultValue="collections" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="collections">Collections</TabsTrigger>
-          <TabsTrigger value="works">Works</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="collections" className="space-y-4">
+      <div className="pt-4">
+        {activeTab === "collections" ? (
           <CollectionEditor
             collections={collections}
             onUpdate={handleCollectionUpdate}
+            onDelete={handleCollectionDelete}
           />
-        </TabsContent>
-
-        <TabsContent value="works" className="space-y-4">
+        ) : (
           <WorkEditor
             works={works}
             collections={collections}
@@ -183,8 +206,8 @@ export default function AdminPage() {
             onCreate={handleWorkCreate}
             onDelete={handleWorkDelete}
           />
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
     </div>
   );
 }

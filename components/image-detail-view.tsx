@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Work } from "../lib/types";
 
 interface ImageDetailViewProps {
@@ -34,7 +35,7 @@ export default function ImageDetailView({
         <div className="flex justify-between items-center px-4 md:px-8 py-3 md:py-4">
           <button
             onClick={onBack}
-            className="text-xs md:text-utility tracking-[0.05em] font-medium hover:opacity-60 transition-opacity"
+            className="text-xs md:text-utility tracking-[0.05em] font-medium hover:opacity-60 transition-opacity cursor-pointer"
           >
             ← <span className="hidden sm:inline">Back to gallery</span>
             <span className="sm:hidden">Back</span>
@@ -47,14 +48,14 @@ export default function ImageDetailView({
             <div className="flex gap-1 md:gap-3">
               <button
                 onClick={onPrevious}
-                className="text-xs md:text-utility tracking-[0.05em] font-medium hover:opacity-60 transition-opacity px-2 md:px-3 py-1 border border-black/20 rounded hover:border-black/40"
+                className="text-xs md:text-utility tracking-[0.05em] font-medium hover:opacity-60 transition-opacity px-2 md:px-3 py-1 border border-black/20 rounded hover:border-black/40 cursor-pointer"
               >
                 <span className="hidden md:inline">← Previous</span>
                 <span className="md:hidden">←</span>
               </button>
               <button
                 onClick={onNext}
-                className="text-xs md:text-utility tracking-[0.05em] font-medium hover:opacity-60 transition-opacity px-2 md:px-3 py-1 border border-black/20 rounded hover:border-black/40"
+                className="text-xs md:text-utility tracking-[0.05em] font-medium hover:opacity-60 transition-opacity px-2 md:px-3 py-1 border border-black/20 rounded hover:border-black/40 cursor-pointer"
               >
                 <span className="hidden md:inline">Next →</span>
                 <span className="md:hidden">→</span>
@@ -68,17 +69,21 @@ export default function ImageDetailView({
       <div className="h-full flex flex-col md:flex-row pt-12 md:pt-16">
         {/* Image Section */}
         <div className="w-full md:w-3/5 flex items-center justify-center p-4 md:p-8">
-          <div className="max-w-full max-h-full flex items-center justify-center">
-            <img
+          <div className="relative w-full h-[40vh] md:h-[75vh]">
+            <Image
               src={
                 currentWorks[selectedImageIndex]?.imageUrl ||
-                "/placeholder.svg?height=400&width=400&query=vintage baseball photograph"
+                "/vintage-baseball-photograph.png"
               }
               alt={
                 currentWorks[selectedImageIndex]?.title ||
                 `Work ${selectedImageIndex + 1}`
               }
-              className="max-w-full max-h-[40vh] md:max-h-[75vh] object-contain shadow-lg"
+              fill
+              sizes="(max-width: 768px) 100vw, 60vw"
+              className="object-contain"
+              priority
+              quality={85}
             />
           </div>
         </div>
@@ -105,7 +110,7 @@ export default function ImageDetailView({
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`py-3 md:py-4 text-xs md:text-sm font-medium tracking-[0.05em] capitalize transition-colors whitespace-nowrap relative ${
+                    className={`py-3 md:py-4 text-xs md:text-sm font-medium tracking-[0.05em] capitalize transition-colors whitespace-nowrap relative cursor-pointer ${
                       activeTab === tab
                         ? "text-black"
                         : "text-black/60 hover:text-black/80"
