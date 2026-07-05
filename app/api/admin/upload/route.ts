@@ -1,12 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
+import {
+  isAdminPasswordConfigured,
+  isValidAdminPassword,
+} from "../../../../lib/admin-auth";
 
 export async function POST(request: NextRequest) {
   try {
     const adminPassword = request.headers.get("x-admin-password");
-    const expectedPassword = process.env.ADMIN_PASSWORD;
 
-    if (!expectedPassword || adminPassword !== expectedPassword) {
+    if (!isAdminPasswordConfigured()) {
+      return NextResponse.json(
+        { error: "ADMIN_PASSWORD not configured" },
+        { status: 500 }
+      );
+    }
+
+    if (!isValidAdminPassword(adminPassword)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

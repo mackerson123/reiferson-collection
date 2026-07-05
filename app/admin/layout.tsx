@@ -10,31 +10,93 @@ interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
+async function validateAdminPassword(password: string) {
+  const response = await fetch("/api/admin/auth", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ password }),
+  });
+
+  return response.ok;
+}
+
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [storedPassword, setStoredPassword] = useState<string | undefined>();
   const [error, setError] = useState("");
+  const [isCheckingStoredPassword, setIsCheckingStoredPassword] =
+    useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const authStatus = localStorage.getItem("admin-authenticated");
-    const savedPassword = localStorage.getItem("admin-password");
-    if (authStatus === "true" && savedPassword) {
-      setIsAuthenticated(true);
-      setStoredPassword(savedPassword);
+    let isMounted = true;
+
+    async function validateStoredPassword() {
+      const savedPassword = localStorage.getItem("admin-password");
+
+      if (!savedPassword) {
+        if (isMounted) {
+          setIsCheckingStoredPassword(false);
+        }
+        return;
+      }
+
+      const isValid = await validateAdminPassword(savedPassword).catch(
+        () => false
+      );
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (isValid) {
+        setIsAuthenticated(true);
+        setStoredPassword(savedPassword);
+      } else {
+        localStorage.removeItem("admin-authenticated");
+        localStorage.removeItem("admin-password");
+      }
+
+      setIsCheckingStoredPassword(false);
     }
+
+    validateStoredPassword();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.trim()) {
+
+    if (!password.trim()) {
+      setError("Please enter a password");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      const isValid = await validateAdminPassword(password);
+
+      if (!isValid) {
+        setError("Invalid password");
+        return;
+      }
+
       setIsAuthenticated(true);
       setStoredPassword(password);
       localStorage.setItem("admin-authenticated", "true");
       localStorage.setItem("admin-password", password);
-      setError("");
-    } else {
-      setError("Please enter a password");
+    } catch {
+      setError("Unable to verify password");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -45,6 +107,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     localStorage.removeItem("admin-password");
     setPassword("");
   };
+
+  if (isCheckingStoredPassword) {
+    return (
+      <div className="min-h-screen bg-[#F1EFE7] text-black font-sans flex flex-col items-center justify-center p-4">
+        <p className="text-navigation tracking-[0.05em] opacity-60">
+          Checking admin access...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <TRPCProvider adminPassword={storedPassword}>
@@ -66,6 +138,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     type="password"
                     placeholder="Enter admin password"
                     value={password}
+                    disabled={isSubmitting}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full bg-white border-black/10 text-black placeholder:text-black/40 tracking-[0.05em]"
                   />
@@ -79,9 +152,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
                 <Button
                   type="submit"
+                  disabled={isSubmitting}
                   className="w-full bg-black text-white tracking-[0.05em] font-medium admin-btn-primary"
                 >
-                  Login
+                  {isSubmitting ? "Checking..." : "Login"}
                 </Button>
               </form>
             </div>

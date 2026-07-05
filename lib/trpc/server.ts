@@ -1,5 +1,9 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
+import {
+  isAdminPasswordConfigured,
+  isValidAdminPassword,
+} from "../admin-auth";
 
 const t = initTRPC.context<{
   adminPassword?: string;
@@ -11,16 +15,14 @@ export const router = t.router;
 export const publicProcedure = t.procedure;
 
 export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
-  const expectedPassword = process.env.ADMIN_PASSWORD;
-
-  if (!expectedPassword) {
+  if (!isAdminPasswordConfigured()) {
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
       message: "ADMIN_PASSWORD not configured",
     });
   }
 
-  if (!ctx.adminPassword || ctx.adminPassword !== expectedPassword) {
+  if (!isValidAdminPassword(ctx.adminPassword)) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "Invalid admin password",
