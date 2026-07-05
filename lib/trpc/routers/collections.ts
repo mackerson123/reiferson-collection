@@ -2,7 +2,8 @@ import { z } from "zod";
 import { router, publicProcedure, protectedProcedure } from "../server";
 import { db } from "../../db";
 import { collections, works } from "../../db/schema";
-import { eq, and, asc } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
+import { withLocalWorkSimulation } from "../../local-work-simulation";
 
 export const collectionsRouter = router({
   // Public query - only returns published collections with published works
@@ -25,9 +26,13 @@ export const collectionsRouter = router({
       ),
     }));
 
+    const visibleCollections = collectionsWithWorks.filter(
+      (c) => c.works.length > 0
+    );
+
     // Only return collections that have at least one published work
     return {
-      collections: collectionsWithWorks.filter((c) => c.works.length > 0),
+      collections: withLocalWorkSimulation(visibleCollections),
     };
   }),
 
