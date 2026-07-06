@@ -54,6 +54,30 @@ const MetadataRow = ({
   );
 };
 
+// Warms the Next.js image optimizer cache for a given src/size so paging and
+// expanding feel instant. The explicit sizes attribute drives srcset selection
+// regardless of the 1px container, matching the visible image's cache entry.
+const PrefetchImage = ({
+  src,
+  sizes,
+  quality,
+}: {
+  src: string;
+  sizes: string;
+  quality: number;
+}) => (
+  <div className="relative w-px h-px overflow-hidden opacity-0 -z-10">
+    <Image
+      src={src}
+      alt=""
+      fill
+      sizes={sizes}
+      quality={quality}
+      loading="eager"
+    />
+  </div>
+);
+
 export default function ImageDetailView({
   selectedImageIndex,
   currentWorks,
@@ -75,6 +99,17 @@ export default function ImageDetailView({
   const tabsContainerRef = React.useRef<HTMLDivElement>(null);
 
   const currentWork = currentWorks[selectedImageIndex];
+  const fallbackImage = "/vintage-baseball-photograph.png";
+  const prevWork =
+    currentWorks.length > 0
+      ? currentWorks[
+          (selectedImageIndex - 1 + currentWorks.length) % currentWorks.length
+        ]
+      : undefined;
+  const nextWork =
+    currentWorks.length > 0
+      ? currentWorks[(selectedImageIndex + 1) % currentWorks.length]
+      : undefined;
 
   const checkScrollability = React.useCallback(() => {
     const container = tabsContainerRef.current;
@@ -325,6 +360,31 @@ export default function ImageDetailView({
           </div>
         </div>
       </div>
+      {/* Prefetch neighbors (detail size) and current image at fullscreen size */}
+      <div aria-hidden className="absolute pointer-events-none">
+        {prevWork && (
+          <PrefetchImage
+            src={prevWork.imageUrl || fallbackImage}
+            sizes="(max-width: 768px) 100vw, 60vw"
+            quality={85}
+          />
+        )}
+        {nextWork && (
+          <PrefetchImage
+            src={nextWork.imageUrl || fallbackImage}
+            sizes="(max-width: 768px) 100vw, 60vw"
+            quality={85}
+          />
+        )}
+        {!isFullscreen && (
+          <PrefetchImage
+            src={currentWork?.imageUrl || fallbackImage}
+            sizes="90vw"
+            quality={90}
+          />
+        )}
+      </div>
+
       {/* Fullscreen Image Overlay */}
       {isFullscreen && (
         <div

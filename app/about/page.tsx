@@ -10,7 +10,7 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen bg-[#F1EFE7] text-black font-sans flex flex-col">
-      <nav className="sticky top-0 z-50 bg-[#F1EFE7] flex justify-between items-center p-6 md:p-8">
+      <nav className="flex-shrink-0 bg-[#F1EFE7] flex justify-between items-center px-4 py-4 md:px-8">
         <Link href="/">
           <h1 className="text-[18px] md:text-subheading font-semibold tracking-[0.05em] gallery-link">
             The Reiferson Collection
@@ -39,14 +39,19 @@ export default function AboutPage() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-[60] bg-[#F1EFE7] flex flex-col items-center justify-center">
-          <button
-            onClick={() => setMobileMenuOpen(false)}
-            className="absolute top-8 right-8 text-black text-2xl z-10 gallery-link"
-          >
-            ×
-          </button>
-          <div className="space-y-6 text-center">
+        <div className="fixed inset-0 z-[60] bg-[#F1EFE7] flex flex-col">
+          <div className="flex-shrink-0 flex justify-between items-center px-4 py-4 md:px-8">
+            <span className="text-[18px] font-semibold tracking-[0.05em]">
+              The Reiferson Collection
+            </span>
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-nav tracking-[0.05em] font-medium gallery-link"
+            >
+              Close
+            </button>
+          </div>
+          <div className="flex-1 flex flex-col items-center justify-center gap-6 text-center">
             <Link
               href="/"
               className="block text-subheading tracking-[0.05em] font-medium w-full gallery-link"
