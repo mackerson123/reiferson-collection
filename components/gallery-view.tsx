@@ -8,6 +8,81 @@ interface GalleryViewProps {
   onWorksChange?: (works: Work[]) => void;
 }
 
+const LERP_FACTOR = 0.1;
+const SETTLE_THRESHOLD = 0.5;
+const MOMENTUM_MS = 160;
+const BLUR_DATA_URL =
+  "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAUH/8QAIhAAAgEDAwUBAAAAAAAAAAAAAQIDAAQRBQYhEhMiMUFR/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAZEQACAwEAAAAAAAAAAAAAAAABAgADESH/2gAMAwEAAhEDEQA/AKOm7m1i2t4oIdPspEjQKrSGQsQBgE4I5NXP3d2of8+3/aNKVRa0XBJM0rZn/9k=";
+
+interface Geometry {
+  rows: number;
+  colSpacing: number;
+  rowSpacing: number;
+  topPadding: number;
+  leftPadding: number;
+  buffer: number;
+  totalWidth: number;
+  worksCount: number;
+  collectionIds: string[];
+  collectionSizes: number[];
+}
+
+// Wraps an image's strip position around the loop so the strip pans forever.
+// Falls back to plain translation when the strip is too narrow to wrap invisibly.
+function computeX(
+  baseX: number,
+  offset: number,
+  g: Geometry,
+  containerWidth: number
+) {
+  if (g.totalWidth <= containerWidth + g.colSpacing) {
+    return baseX - offset + g.leftPadding;
+  }
+  let x = (baseX - offset + g.buffer) % g.totalWidth;
+  if (x < 0) x += g.totalWidth;
+  return x - g.buffer + g.leftPadding;
+}
+
+function calculateOptimalLayout(height: number, mobile: boolean) {
+  const minSize = mobile ? 80 : 100;
+  const maxSize = mobile ? 130 : 170;
+  const minGap = mobile ? 12 : 20;
+  const topPadding = mobile ? 16 : 32;
+  const bottomPadding = mobile ? 16 : 32;
+
+  const availableHeight = height - topPadding - bottomPadding;
+
+  for (let rows = Math.floor(availableHeight / minSize); rows >= 1; rows--) {
+    const sizeWithMinGap = (availableHeight - (rows - 1) * minGap) / rows;
+
+    if (sizeWithMinGap >= minSize && sizeWithMinGap <= maxSize) {
+      const imageSize = Math.floor(sizeWithMinGap);
+      const totalImageHeight = rows * imageSize;
+      const totalGapSpace = availableHeight - totalImageHeight;
+      const gap = rows > 1 ? Math.floor(totalGapSpace / (rows - 1)) : minGap;
+      const rowSpacing = imageSize + gap;
+      const colSpacing = imageSize + gap;
+
+      return {
+        rows,
+        imageSize,
+        rowSpacing,
+        topPadding,
+        colSpacing,
+      };
+    }
+  }
+
+  const fallbackSize = Math.min(maxSize, availableHeight);
+  return {
+    rows: 1,
+    imageSize: fallbackSize,
+    rowSpacing: 0,
+    topPadding,
+    colSpacing: fallbackSize + minGap,
+  };
+}
+
 export default function GalleryView({
   onImageClick,
   onWorksChange,
@@ -18,66 +93,57 @@ export default function GalleryView({
   const [currentWorks, setCurrentWorks] = useState<Work[]>([]);
   const [containerHeight, setContainerHeight] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const isTabClickingRef = useRef(false);
+  const viewportRef = useRef<HTMLDivElement>(null);
   const hasInitializedRef = useRef(false);
+
+  const offsetRef = useRef({ current: 0, target: 0 });
+  const rafRef = useRef<number | null>(null);
+  const imageElsRef = useRef(new Map<number, HTMLDivElement>());
+  const containerWidthRef = useRef(0);
+  const geometryRef = useRef<Geometry | null>(null);
+  const activeFilterRef = useRef("");
+  const tabAnimatingRef = useRef(false);
+  const draggedRef = useRef(false);
+  const dragRef = useRef({
+    active: false,
+    lastX: 0,
+    lastT: 0,
+    velocity: 0,
+    moved: 0,
+  });
 
   const collections = collectionsData?.collections || [];
 
-  // Calculate optimal layout that fills available height with minimal gap
-  const calculateOptimalLayout = (height: number, mobile: boolean) => {
-    const minSize = mobile ? 80 : 100;
-    const maxSize = mobile ? 130 : 170;
-    const minGap = mobile ? 12 : 20;
-    const topPadding = mobile ? 16 : 32;
-    const bottomPadding = mobile ? 16 : 32;
-
-    const availableHeight = height - topPadding - bottomPadding;
-
-    // Try different row counts, starting from most rows possible
-    for (let rows = Math.floor(availableHeight / minSize); rows >= 1; rows--) {
-      // Calculate image size needed to fill height with minimum gap
-      // Formula: rows * size + (rows - 1) * gap = availableHeight
-      // With minGap: size = (availableHeight - (rows - 1) * minGap) / rows
-      const sizeWithMinGap = (availableHeight - (rows - 1) * minGap) / rows;
-
-      if (sizeWithMinGap >= minSize && sizeWithMinGap <= maxSize) {
-        // This works! Now distribute space evenly
-        const imageSize = Math.floor(sizeWithMinGap);
-        const totalImageHeight = rows * imageSize;
-        const totalGapSpace = availableHeight - totalImageHeight;
-        const gap = rows > 1 ? Math.floor(totalGapSpace / (rows - 1)) : minGap;
-        const rowSpacing = imageSize + gap;
-        // Use the same gap horizontally for consistent spacing
-        const colSpacing = imageSize + gap;
-
-        return {
-          rows,
-          imageSize,
-          rowSpacing,
-          topPadding,
-          colSpacing,
-        };
-      }
-    }
-
-    // Fallback to single row with max size
-    const fallbackSize = Math.min(maxSize, availableHeight);
-    return {
-      rows: 1,
-      imageSize: fallbackSize,
-      rowSpacing: 0,
-      topPadding,
-      colSpacing: fallbackSize + minGap,
-    };
-  };
-
-  // Get current layout based on container height (memoized)
   const layout = useMemo(
     () => calculateOptimalLayout(containerHeight, isMobile),
     [containerHeight, isMobile]
   );
+
+  const workCollectionIds = useMemo(
+    () =>
+      collections.flatMap((collection: Collection) =>
+        collection.works.map(() => collection.id)
+      ),
+    [collections]
+  );
+
+  const leftPadding = isMobile ? 16 : 32;
+  const cols = Math.max(1, Math.ceil(currentWorks.length / layout.rows));
+  const geometry: Geometry = {
+    rows: layout.rows,
+    colSpacing: layout.colSpacing,
+    rowSpacing: layout.rowSpacing,
+    topPadding: layout.topPadding,
+    leftPadding,
+    buffer: layout.colSpacing + leftPadding,
+    totalWidth: cols * layout.colSpacing,
+    worksCount: currentWorks.length,
+    collectionIds: collections.map((c: Collection) => c.id),
+    collectionSizes: collections.map((c: Collection) => c.works.length),
+  };
+  geometryRef.current = geometry;
+  activeFilterRef.current = activeFilter;
 
   useEffect(() => {
     if (collections.length > 0) {
@@ -86,7 +152,6 @@ export default function GalleryView({
       );
       setCurrentWorks(allWorks);
 
-      // Only set initial active filter once
       if (!hasInitializedRef.current) {
         setActiveFilter(collections[0]?.id || "");
         hasInitializedRef.current = true;
@@ -113,93 +178,198 @@ export default function GalleryView({
     };
   }, []);
 
-  const handleScroll = useCallback(() => {
-    if (!scrollContainerRef.current || isTabClickingRef.current) return;
-    if (collections.length === 0 || currentWorks.length === 0) return;
+  const applyPositions = useCallback(() => {
+    const g = geometryRef.current;
+    if (!g) return;
+    const offset = offsetRef.current.current;
+    const containerWidth = containerWidthRef.current;
+    imageElsRef.current.forEach((el, index) => {
+      const col = Math.floor(index / g.rows);
+      const row = index % g.rows;
+      const x = computeX(col * g.colSpacing, offset, g, containerWidth);
+      const y = row * g.rowSpacing + g.topPadding;
+      el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    });
+  }, []);
 
-    const container = scrollContainerRef.current;
-    const scrollLeft = container.scrollLeft;
-    const containerWidth = container.clientWidth;
+  const syncActiveCollection = useCallback(() => {
+    if (tabAnimatingRef.current) return;
+    const g = geometryRef.current;
+    if (!g || g.worksCount === 0 || g.collectionIds.length === 0) return;
 
-    // Use responsive calculations from layout
-    const { rows, colSpacing } = layout;
-    const leftPadding = isMobile ? 16 : 32;
+    let center =
+      offsetRef.current.current + containerWidthRef.current / 2 - g.leftPadding;
+    center = ((center % g.totalWidth) + g.totalWidth) % g.totalWidth;
+    const centerColumn = Math.floor(center / g.colSpacing);
+    const centerIndex = Math.min(
+      Math.max(0, centerColumn * g.rows),
+      g.worksCount - 1
+    );
 
-    // Calculate which column is in the center of the viewport
-    const viewportCenter = scrollLeft + containerWidth / 2;
-    const adjustedCenter = viewportCenter - leftPadding;
-    const centerColumn = Math.floor(adjustedCenter / colSpacing);
-
-    const centerImageIndex = Math.max(0, centerColumn * rows);
-
-    // Find which collection this image belongs to
     let running = 0;
-    let collectionIndex = 0;
-    for (let i = 0; i < collections.length; i++) {
-      const next = running + collections[i].works.length;
-      if (centerImageIndex < next) {
-        collectionIndex = i;
+    let visibleId = g.collectionIds[g.collectionIds.length - 1];
+    for (let i = 0; i < g.collectionSizes.length; i++) {
+      running += g.collectionSizes[i];
+      if (centerIndex < running) {
+        visibleId = g.collectionIds[i];
         break;
       }
-      running = next;
     }
 
-    const visibleCollectionId = collections[collectionIndex]?.id;
-    if (visibleCollectionId && visibleCollectionId !== activeFilter) {
-      setActiveFilter(visibleCollectionId);
+    if (visibleId && visibleId !== activeFilterRef.current) {
+      setActiveFilter(visibleId);
     }
-  }, [
-    containerHeight,
-    isMobile,
-    collections,
-    currentWorks,
-    activeFilter,
-    layout,
-  ]);
+  }, []);
+
+  const clampTarget = useCallback(() => {
+    const g = geometryRef.current;
+    if (!g) return;
+    const containerWidth = containerWidthRef.current;
+    if (g.totalWidth > containerWidth + g.colSpacing) return;
+    const max = Math.max(0, g.totalWidth + g.leftPadding * 2 - containerWidth);
+    const o = offsetRef.current;
+    o.target = Math.min(Math.max(o.target, 0), max);
+  }, []);
+
+  const animate = useCallback(() => {
+    const o = offsetRef.current;
+    const diff = o.target - o.current;
+    if (Math.abs(diff) < SETTLE_THRESHOLD && !dragRef.current.active) {
+      o.current = o.target;
+      applyPositions();
+      tabAnimatingRef.current = false;
+      syncActiveCollection();
+      rafRef.current = null;
+      return;
+    }
+    o.current += diff * LERP_FACTOR;
+    applyPositions();
+    syncActiveCollection();
+    rafRef.current = requestAnimationFrame(animate);
+  }, [applyPositions, syncActiveCollection]);
+
+  const startAnimation = useCallback(() => {
+    if (rafRef.current === null) {
+      rafRef.current = requestAnimationFrame(animate);
+    }
+  }, [animate]);
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
+
+  const panBy = useCallback(
+    (delta: number) => {
+      tabAnimatingRef.current = false;
+      offsetRef.current.target += delta;
+      clampTarget();
+      startAnimation();
+    },
+    [clampTarget, startAnimation]
+  );
+
+  const ready = !isLoading && containerHeight > 0;
 
   useEffect(() => {
     const container = containerRef.current;
-    const scrollContainer = scrollContainerRef.current;
+    if (!container) return;
 
-    if (container) {
-      const resizeObserver = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          setContainerHeight(entry.contentRect.height);
-        }
-      });
-
-      const rect = container.getBoundingClientRect();
-      if (rect.height > 0) {
-        setContainerHeight(rect.height);
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerHeight(entry.contentRect.height);
+        containerWidthRef.current = entry.contentRect.width;
       }
+    });
 
-      resizeObserver.observe(container);
-
-      // Add scroll listener
-      if (scrollContainer) {
-        scrollContainer.addEventListener("scroll", handleScroll);
-      }
-
-      return () => {
-        resizeObserver.disconnect();
-        if (scrollContainer) {
-          scrollContainer.removeEventListener("scroll", handleScroll);
-        }
-      };
+    const rect = container.getBoundingClientRect();
+    if (rect.height > 0) {
+      setContainerHeight(rect.height);
+      containerWidthRef.current = rect.width;
     }
-  }, [handleScroll]);
+
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, [ready]);
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta =
+        Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      panBy(delta);
+    };
+
+    viewport.addEventListener("wheel", onWheel, { passive: false });
+    return () => viewport.removeEventListener("wheel", onWheel);
+  }, [ready, panBy]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const g = geometryRef.current;
+      if (!g) return;
+      if (e.key === "ArrowLeft") {
+        panBy(-g.colSpacing * 2);
+      } else if (e.key === "ArrowRight") {
+        panBy(g.colSpacing * 2);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [panBy]);
+
+  useEffect(() => {
+    applyPositions();
+    clampTarget();
+  }, [layout, currentWorks.length, applyPositions, clampTarget]);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!e.isPrimary) return;
+    dragRef.current = {
+      active: true,
+      lastX: e.clientX,
+      lastT: performance.now(),
+      velocity: 0,
+      moved: 0,
+    };
+    draggedRef.current = false;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    if (!drag.active) return;
+    const now = performance.now();
+    const dx = e.clientX - drag.lastX;
+    const dt = Math.max(1, now - drag.lastT);
+    drag.velocity = 0.7 * drag.velocity + 0.3 * (dx / dt);
+    drag.lastX = e.clientX;
+    drag.lastT = now;
+    drag.moved += Math.abs(dx);
+    if (drag.moved > 5) {
+      draggedRef.current = true;
+    }
+    panBy(-dx);
+  };
+
+  const handlePointerEnd = () => {
+    const drag = dragRef.current;
+    if (!drag.active) return;
+    drag.active = false;
+    panBy(-drag.velocity * MOMENTUM_MS);
+  };
 
   const handleFilterChange = (filter: string) => {
-    isTabClickingRef.current = true;
-
-    // Set the active filter immediately and keep it locked during animation
     setActiveFilter(filter);
 
-    const container = scrollContainerRef.current;
-    if (!container) {
-      isTabClickingRef.current = false;
-      return;
-    }
+    const g = geometryRef.current;
+    if (!g || g.worksCount === 0) return;
 
     let startIndex = 0;
     for (let i = 0; i < collections.length; i++) {
@@ -207,27 +377,25 @@ export default function GalleryView({
       startIndex += collections[i].works.length;
     }
 
-    // Use layout calculations
-    const col = Math.floor(startIndex / layout.rows);
-    const targetX = col * layout.colSpacing;
-    const leftPadding = isMobile ? 16 : 32;
+    const baseX = Math.floor(startIndex / g.rows) * g.colSpacing;
+    const o = offsetRef.current;
+    const wrapEnabled = g.totalWidth > containerWidthRef.current + g.colSpacing;
 
-    container.scrollTo({
-      left: targetX - leftPadding,
-      behavior: "smooth",
-    });
+    if (wrapEnabled) {
+      let delta =
+        (((baseX - o.target) % g.totalWidth) + g.totalWidth) % g.totalWidth;
+      if (delta > g.totalWidth / 2) delta -= g.totalWidth;
+      o.target += delta;
+    } else {
+      o.target = baseX;
+      clampTarget();
+    }
 
-    // Allow scroll updates again after scroll animation completes
-    // Use longer timeout on mobile to account for slower scroll animations
-    setTimeout(
-      () => {
-        isTabClickingRef.current = false;
-      },
-      isMobile ? 500 : 300
-    );
+    tabAnimatingRef.current = true;
+    startAnimation();
   };
 
-  if (isLoading || containerHeight === 0) {
+  if (!ready) {
     return (
       <div className="flex flex-col flex-1 min-h-0 items-center justify-center">
         <div ref={containerRef} className="absolute inset-0" />
@@ -286,75 +454,76 @@ export default function GalleryView({
 
       <main ref={containerRef} className="flex-1 relative min-h-0">
         <div
-          ref={scrollContainerRef}
-          className="absolute inset-0 overflow-x-auto overflow-y-hidden scrollbar-hide"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          ref={viewportRef}
+          className="absolute inset-0 overflow-hidden select-none cursor-grab active:cursor-grabbing"
+          style={{ touchAction: "none" }}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerEnd}
+          onPointerCancel={handlePointerEnd}
         >
-          <div
-            className="relative h-full flex"
-            style={{
-              width: `${
-                Math.ceil(currentWorks.length / layout.rows) *
-                  layout.colSpacing +
-                (isMobile ? 36 : 52)
-              }px`,
-              minHeight: "100%",
-              paddingLeft: isMobile ? "16px" : "32px",
-              paddingRight: "20px",
-            }}
-          >
-            {currentWorks.map((work, index) => {
-              const row = index % layout.rows;
-              const col = Math.floor(index / layout.rows);
+          {currentWorks.map((work, index) => {
+            const row = index % layout.rows;
+            const col = Math.floor(index / layout.rows);
+            const x = computeX(
+              col * layout.colSpacing,
+              offsetRef.current.current,
+              geometry,
+              containerWidthRef.current
+            );
+            const y = row * layout.rowSpacing + layout.topPadding;
+            const isActive = workCollectionIds[index] === activeFilter;
 
-              const x = col * layout.colSpacing + (isMobile ? 16 : 32);
-              const y = row * layout.rowSpacing + layout.topPadding;
-
-              return (
+            return (
+              <div
+                key={work.id}
+                ref={(el) => {
+                  if (el) {
+                    imageElsRef.current.set(index, el);
+                  } else {
+                    imageElsRef.current.delete(index);
+                  }
+                }}
+                className={`absolute left-0 top-0 will-change-transform transition-opacity duration-700 ${
+                  isActive ? "opacity-100" : "opacity-35"
+                }`}
+                style={{
+                  transform: `translate3d(${x}px, ${y}px, 0)`,
+                  width: `${layout.imageSize}px`,
+                  height: `${layout.imageSize}px`,
+                }}
+              >
                 <div
-                  key={work.id}
-                  className="absolute gallery-image"
-                  style={{
-                    left: `${x}px`,
-                    top: `${y}px`,
-                    width: `${layout.imageSize}px`,
-                    height: `${layout.imageSize}px`,
+                  className="relative w-full h-full gallery-image"
+                  onClick={() => {
+                    if (!draggedRef.current) {
+                      onImageClick(index);
+                    }
                   }}
-                  onClick={() => onImageClick(index)}
                 >
                   <Image
                     src={work.imageUrl || "/vintage-baseball-photograph.png"}
                     alt={work.title}
                     fill
                     sizes={`${layout.imageSize}px`}
-                    className={`rounded-sm ${
-                      index === 3 ? "object-contain" : "object-cover"
-                    }`}
-                    loading="lazy"
+                    className="rounded-sm object-cover"
+                    loading={index < layout.rows * 8 ? "eager" : "lazy"}
                     placeholder="blur"
-                    blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAUH/8QAIhAAAgEDAwUBAAAAAAAAAAAAAQIDAAQRBQYhEhMiMUFR/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAZEQACAwEAAAAAAAAAAAAAAAABAgADESH/2gAMAwEAAhEDEQA/AKOm7m1i2t4oIdPspEjQKrSGQsQBgE4I5NXP3d2of8+3/aNKVRa0XBJM0rZn/9k="
+                    blurDataURL={BLUR_DATA_URL}
+                    draggable={false}
                   />
-                  <div
-                    className={`absolute top-1 left-1 bg-black/70 text-white ${
-                      isMobile
-                        ? "text-small px-1 py-0.5"
-                        : "text-small px-1 py-0.5"
-                    } rounded`}
-                  >
-                    {index + 1}
-                  </div>
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
         </div>
       </main>
 
       {/* Collection info footer - always visible */}
-      <div className="bg-[#F1EFE7] py-2 md:py-3 text-center flex-shrink-0">
-        <div className="text-nav md:text-heading font-bold tracking-[0.02em]">
+      <div className="bg-[#F1EFE7] py-3 md:py-4 text-center flex-shrink-0">
+        <div className="text-xl md:text-3xl font-bold tracking-[0.02em]">
           {collections.find((c) => c.id === activeFilter)?.name || "Collection"}
-          <span className="text-nav md:text-lg font-normal">
+          <span className="text-base md:text-xl font-normal">
             {" "}
             ({collections.find((c) => c.id === activeFilter)?.works.length || 0}
             )

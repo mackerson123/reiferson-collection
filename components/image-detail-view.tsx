@@ -373,7 +373,7 @@ export default function ImageDetailView({
               fill
               sizes={isZoomedIn ? "150vw" : "90vw"}
               className="object-contain"
-              quality={100}
+              quality={90}
             />
           </div>
         </div>

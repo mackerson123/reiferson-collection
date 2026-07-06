@@ -211,7 +211,7 @@
   }
 
   .gallery-image {
-    @apply cursor-pointer transition-transform duration-200 hover:scale-105 active:scale-95;
+    @apply cursor-pointer transition-opacity duration-200 hover:opacity-70 active:opacity-60;
   }
 
   .gallery-nav-btn {

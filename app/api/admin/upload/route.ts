@@ -4,6 +4,11 @@ import {
   isAdminPasswordConfigured,
   isValidAdminPassword,
 } from "../../../../lib/admin-auth";
+import {
+  optimizeImage,
+  shouldOptimize,
+  toWebpFilename,
+} from "../../../../lib/optimize-image";
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,8 +32,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    const blob = await put(file.name, file, {
+    let uploadName = file.name;
+    let uploadBody: File | Buffer = file;
+    let contentType = file.type;
+
+    if (shouldOptimize(file.type)) {
+      const optimized = await optimizeImage(await file.arrayBuffer());
+      uploadName = toWebpFilename(file.name);
+      uploadBody = optimized.buffer;
+      contentType = optimized.contentType;
+    }
+
+    const blob = await put(uploadName, uploadBody, {
       access: "public",
+      contentType,
     });
 
     return NextResponse.json({ imageUrl: blob.url });
