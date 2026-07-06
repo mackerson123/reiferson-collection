@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { Work, Collection } from "../lib/types";
 import { trpc } from "../lib/trpc/client";
+import LoadingIntro from "./loading-intro";
 
 interface GalleryViewProps {
   onImageClick: (index: number) => void;
@@ -11,6 +12,8 @@ interface GalleryViewProps {
 const LERP_FACTOR = 0.1;
 const SETTLE_THRESHOLD = 0.5;
 const MOMENTUM_MS = 160;
+const MIN_INTRO_MS = 900;
+const INTRO_FADE_MS = 500;
 const BLUR_DATA_URL =
   "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAUH/8QAIhAAAgEDAwUBAAAAAAAAAAAAAQIDAAQRBQYhEhMiMUFR/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAZEQACAwEAAAAAAAAAAAAAAAABAgADESH/2gAMAwEAAhEDEQA/AKOm7m1i2t4oIdPspEjQKrSGQsQBgE4I5NXP3d2of8+3/aNKVRa0XBJM0rZn/9k=";
 
@@ -89,6 +92,9 @@ export default function GalleryView({
 }: GalleryViewProps) {
   const { data: collectionsData, isLoading } =
     trpc.collections.listPublished.useQuery();
+  const [introExiting, setIntroExiting] = useState(false);
+  const [introDone, setIntroDone] = useState(false);
+  const introStartRef = useRef(0);
   const [activeFilter, setActiveFilter] = useState<string>("");
   const [currentWorks, setCurrentWorks] = useState<Work[]>([]);
   const [containerHeight, setContainerHeight] = useState(0);
@@ -275,6 +281,26 @@ export default function GalleryView({
   const ready = !isLoading && containerHeight > 0;
 
   useEffect(() => {
+    introStartRef.current = Date.now();
+  }, []);
+
+  useEffect(() => {
+    if (!ready || introExiting) return;
+    const elapsed = Date.now() - introStartRef.current;
+    const timer = setTimeout(
+      () => setIntroExiting(true),
+      Math.max(0, MIN_INTRO_MS - elapsed)
+    );
+    return () => clearTimeout(timer);
+  }, [ready, introExiting]);
+
+  useEffect(() => {
+    if (!introExiting) return;
+    const timer = setTimeout(() => setIntroDone(true), INTRO_FADE_MS);
+    return () => clearTimeout(timer);
+  }, [introExiting]);
+
+  useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
@@ -395,17 +421,8 @@ export default function GalleryView({
     startAnimation();
   };
 
-  if (!ready) {
-    return (
-      <div className="flex flex-col flex-1 min-h-0 items-center justify-center">
-        <div ref={containerRef} className="absolute inset-0" />
-        {isLoading && <p>Loading collections...</p>}
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col flex-1 min-h-0">
+    <div className="relative flex flex-col flex-1 min-h-0">
       <div className="bg-[#F1EFE7] border-b border-black/10">
         {/* Mobile: tabs with horizontal overflow support */}
         <div className="sm:hidden px-4 h-[52px]">
@@ -533,6 +550,8 @@ export default function GalleryView({
           /{collections.reduce((sum, c) => sum + c.works.length, 0)} photos
         </div>
       </div>
+
+      {!introDone && <LoadingIntro exiting={introExiting} />}
     </div>
   );
 }

@@ -239,3 +239,55 @@
     @apply cursor-pointer transition-opacity duration-150 hover:opacity-60;
   }
 }
+
+/* Loading intro baseball */
+@keyframes loading-ball-float {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes loading-ball-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loading-ball-shadow {
+  from {
+    transform: scaleX(1);
+    opacity: 0.85;
+  }
+  to {
+    transform: scaleX(0.75);
+    opacity: 0.55;
+  }
+}
+
+.loading-ball-float {
+  animation: loading-ball-float 0.95s cubic-bezier(0.37, 0, 0.63, 1) infinite
+    alternate;
+}
+
+.loading-ball-spin {
+  animation: loading-ball-spin 1.8s linear infinite;
+}
+
+.loading-ball-shadow {
+  animation: loading-ball-shadow 0.95s cubic-bezier(0.37, 0, 0.63, 1) infinite
+    alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-ball-float,
+  .loading-ball-spin,
+  .loading-ball-shadow {
+    animation: none;
+  }
+}
